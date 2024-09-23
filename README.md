@@ -1,3 +1,3 @@
-## INFO-2A : Functional Programming teached by C.OLARTE
+## Functional Programming C.OLARTE
 
 ### Made by E.NICOLAS & D.PAHALIN
