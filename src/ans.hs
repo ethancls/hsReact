@@ -1,15 +1,47 @@
+import Data.Void (Void)
+
+{-
+
+\**** REACTION SYSTEMS ****
+
+\$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
+\$ D.PAHALIN
+
+Simple project for testing systems under string
+format with sequences of entities or with process
+on the environment.
+
+We can also define a system as a set of logical propositions i.e P = {φ1 = e1 ∧¬e2, ...}
+
+-}
+
+-- ******* DEFINITIONS DES TYPES | STRUCTURES *******
+
+-- Définitions des types
+type Sequence = [String]
+
+type Entites = String
+
 -- Définition d'une réaction avec les réactifs, les inhibiteurs et les produits
-data Reaction = Reaction {reactants :: [String], inhibitors :: [String], products :: [String]} deriving (Show, Eq)
+data Reaction = Reaction {reactifs :: [Entites], inhibiteurs :: [Entites], produits :: [Entites]} deriving (Show, Eq)
+
+-- ******** FONCTIONS DE VERIFICATIONS ********
 
 -- Vérifier si une réaction est activée (c'est-à-dire tous les réactifs sont présents et aucun inhibiteur n'est présent)
-reacVerif :: [String] -> Reaction -> Bool
-reacVerif sequence reaction =
-  all (`elem` sequence) (reactants reaction) && not (any (`elem` sequence) (inhibitors reaction))
+verifReac :: Sequence -> Reaction -> Bool
+verifReac sequence reaction =
+  all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
 -- Test des séquences sur l'ensemble des réactions
-sequenceVerif :: [[String]] -> [Reaction] -> [String]
-sequenceVerif sequences reactions =
-  concatMap products (filter (\reaction -> any (`reacVerif` reaction) sequences) reactions)
+verifSequence :: [Sequence] -> [Reaction] -> [Entites]
+verifSequence sequences reactions =
+  concatMap produits (filter (\reaction -> any (`verifReac` reaction) sequences) reactions)
+
+-- Verification de présence d'une entité
+verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
+verifEntite e seq reac = e `elem` verifSequence seq reac
+
+-- ********* SYSTEMES DE TESTS *********
 
 -- Système de réactions
 
@@ -22,22 +54,19 @@ alphaSystem =
 
 -- Séquences de tests
 
-betaSequence :: [[String]]
+betaSequence :: [Sequence]
 betaSequence =
-  [
-    ["egf"]
+  [ ["egf", "e"]
   ]
 
+-- ******** PROCESSUS D'ENVIRONNEMENT *********
 
+-- Fonction rec K
 
--- Processus 
-
-processK :: [String] ->  -> [String]
-processK
-
-
--- TODO 
+-- ******** TODO *********
 
 -- Lecture des réactions dans un fichier
 
--- 
+-- Langage proposition logique pour exprimer le systeme (egf ∧ ¬e ∧ ¬p -> errb1)
+
+-- Exemple de simulation avec un contexte
