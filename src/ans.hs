@@ -38,8 +38,8 @@ verifSequence sequences reactions =
   concatMap produits (filter (\reaction -> any (`verifReac` reaction) sequences) reactions)
 
 -- Verification de présence d'une entité
-verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
-verifEntite e seq reac = e `elem` verifSequence seq reac
+verifEntite :: [Entites] -> [Sequence] -> [Reaction] -> Bool
+verifEntite entites sequences reactions = any (`elem` verifSequence sequences reactions) entites
 
 -- ********* SYSTEMES DE TESTS *********
 
@@ -61,12 +61,10 @@ betaSequence =
 
 -- ******** PROCESSUS D'ENVIRONNEMENT *********
 
--- Fonction rec K
+-- Fonction de processus
 
 -- ******** TODO *********
 
 -- Lecture des réactions dans un fichier
 
 -- Langage proposition logique pour exprimer le systeme (egf ∧ ¬e ∧ ¬p -> errb1)
-
--- Exemple de simulation avec un contexte

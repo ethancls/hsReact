@@ -1,3 +1,3 @@
-## Functional Programming C.OLARTE
+# Functional Programming C.OLARTE
 
-### Made by E.NICOLAS & D.PAHALIN
+## Made by E.NICOLAS & D.PAHALIN
