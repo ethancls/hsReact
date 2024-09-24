@@ -61,7 +61,15 @@ betaSequence =
 
 -- ******** PROCESSUS D'ENVIRONNEMENT *********
 
--- Fonction de processus
+{- 
+Fonction de processus : fonction qui pars de empty,
+ajoute ce qu'elle veut a l'env et produit une sortie,
+on reutilise la sortie dans l'environnement t+1 et on
+réapplique les regles avec encore une entite aleatoire
+fournie par la fonction
+-}
+
+
 
 -- ******** TODO *********
 
