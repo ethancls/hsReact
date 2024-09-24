@@ -1,3 +1,4 @@
+import Data.Char (GeneralCategory)
 import Data.Void (Void)
 
 {-
@@ -61,7 +62,7 @@ betaSequence =
 
 -- ******** PROCESSUS D'ENVIRONNEMENT *********
 
-{- 
+{-
 Fonction de processus : fonction qui pars de empty,
 ajoute ce qu'elle veut a l'env et produit une sortie,
 on reutilise la sortie dans l'environnement t+1 et on
@@ -69,7 +70,11 @@ réapplique les regles avec encore une entite aleatoire
 fournie par la fonction
 -}
 
+data Generateur = String -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
 
+{- processus :: [Entites] -> Generateur -> [Reaction] -> [Entites]
+processus = loop state return
+processus e g r = (verifSequence g(e) r)  g  r -}
 
 -- ******** TODO *********
 
