@@ -34,11 +34,12 @@ verifReac sequence reaction =
   all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
 -- Test des séquences sur l'ensemble des réactions
-verifSequence :: [Sequence] -> [Reaction] -> [Sequence]
+verifSequence :: [Sequence] -> [Reaction] -> [[Entites]]
 verifSequence sequences reactions =
-  [produits reaction | reaction <- reactions, any (`verifReac` reaction) sequences]
+  [ concat [produits reaction | reaction <- reactions, verifReac sequence reaction] 
+  | sequence <- sequences
+  ]
 
--- Verification de présence d'une entité
 -- Verification de présence d'une entité
 verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
 verifEntite entite sequences reactions = 
@@ -59,8 +60,10 @@ alphaSystem =
 
 betaSequence :: [Sequence]
 betaSequence =
-  [ ["egf", "e"],
-    ["erk12", "egf"]
+  [ ["egf"],
+    ["egf", "e"],
+    ["erk12"],
+    ["p"]
   ]
 
 -- ******** PROCESSUS D'ENVIRONNEMENT *********
