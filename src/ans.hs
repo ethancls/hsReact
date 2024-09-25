@@ -1,6 +1,7 @@
+import Data.Bits (Bits (xor))
 import Data.Char (GeneralCategory)
+import Data.List (nub)
 import Data.Void (Void)
-import Test.QuickCheck (Gen)
 
 {-
 
@@ -32,19 +33,19 @@ data Reaction = Reaction {reactifs :: [Entites], inhibiteurs :: [Entites], produ
 -- Vérifier si une réaction est activée (c'est-à-dire tous les réactifs sont présents et aucun inhibiteur n'est présent)
 verifReac :: Sequence -> Reaction -> Bool
 verifReac sequence reaction =
-  all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
+    all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
 -- Test des séquences sur l'ensemble des réactions
-verifSequence :: [Sequence] -> [Reaction] -> [[Entites]]
+verifSequence :: [Sequence] -> [Reaction] -> [Sequence]
 verifSequence sequences reactions =
-  [ concat [produits reaction | reaction <- reactions, verifReac sequence reaction]
-  | sequence <- sequences
-  ]
+    [ concat [produits reaction | reaction <- reactions, verifReac sequence reaction]
+    | sequence <- sequences
+    ]
 
 -- Verification de présence d'une entité
 verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
 verifEntite entite sequences reactions =
-  any (elem entite) (verifSequence sequences reactions)
+    any (elem entite) (verifSequence sequences reactions)
 
 -- ********* SYSTEMES DE TESTS *********
 
@@ -52,20 +53,20 @@ verifEntite entite sequences reactions =
 
 alphaSystem :: [Reaction]
 alphaSystem =
-  [ Reaction ["egf"] ["e", "p"] ["erbb1"],
-    Reaction ["egf"] [] ["erk12"],
-    Reaction ["erk12"] [] ["p70s6k"]
-  ]
+    [ Reaction ["egf"] ["e", "p"] ["erbb1"]
+    , Reaction ["egf"] [] ["erk12"]
+    , Reaction ["erk12"] [] ["p70s6k"]
+    ]
 
 -- Séquences de tests
 
 betaSequence :: [Sequence]
 betaSequence =
-  [ ["egf"],
-    ["egf", "e"],
-    ["erk12"],
-    ["p"]
-  ]
+    [ ["egf"]
+    , ["egf", "e"]
+    , ["erk12"]
+    , ["p"]
+    ]
 
 -- ******** PROCESSUS D'ENVIRONNEMENT *********
 
@@ -77,24 +78,34 @@ réapplique les regles avec encore une entite aleatoire
 fournie par la fonction
 -}
 
-type Generateur = Entites -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
+data Generateur = String -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
 
 {- processus :: [Entites] -> Generateur -> [Reaction] -> [Entites]
 processus = loop state return
 processus e g r = (verifSequence g(e) r)  g  r -}
-processus :: Sequence -> Generateur -> [Reaction] -> [Sequence]
-processus env g reactions = takeWhileDifferent (iterate (applyReactionsUnique reactions) (env ++ [g]))
+processus :: Sequence -> String -> [Reaction] -> [Sequence]
+-- processus env g reactions = takeWhileDifferent (iterate (applyReactionsUnique reactions) (env ++ [g]))
+processus env g reactions = notreNub (iterate (applyReactionsUnique reactions) (env ++ [g]))
 
 applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
 applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
   where
     addUnique = foldl (\acc' p -> if p `elem` acc' then acc' else acc' ++ [p])
 
-takeWhileDifferent :: Eq a => [a] -> [a]
-takeWhileDifferent (x:y:xs)
-  | x == y    = [x]
-  | otherwise = x : takeWhileDifferent (y:xs)
+applyReactions :: [Reaction] -> Sequence -> Sequence
+applyReactions reactions env = env ++ concat [produits r | r <- reactions, verifReac env r]
+
+takeWhileDifferent :: (Eq a) => [a] -> [a]
+takeWhileDifferent (x : y : xs)
+    | x == y = [x]
+    | otherwise = x : takeWhileDifferent (y : xs)
 takeWhileDifferent xs = xs
+
+notreNub :: (Eq a) => [a] -> [a]
+notreNub lst = reverse (notreNubAux lst [])
+  where
+    notreNubAux [] acc = acc
+    notreNubAux (x : xs) acc = if x `elem` acc then notreNubAux [] acc else notreNubAux xs (x : acc)
 
 -- ******** TODO *********
 
