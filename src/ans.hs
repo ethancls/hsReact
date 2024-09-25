@@ -19,9 +19,9 @@ We can also define a system as a set of logical propositions i.e P = {φ1 = e1 �
 -- ******* DEFINITIONS DES TYPES | STRUCTURES *******
 
 -- Définitions des types
-type Sequence = [String]
-
 type Entites = String
+
+type Sequence = [Entites]
 
 -- Définition d'une réaction avec les réactifs, les inhibiteurs et les produits
 data Reaction = Reaction {reactifs :: [Entites], inhibiteurs :: [Entites], produits :: [Entites]} deriving (Show, Eq)
