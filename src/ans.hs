@@ -6,7 +6,7 @@ import Data.Void (Void)
 \**** REACTION SYSTEMS ****
 
 \$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
-\$ D.PAHALIN
+\$ D.PALAHIN 12106973 dmytro.palahin@edu.univ-paris13.fr
 
 Simple project for testing systems under string
 format with sequences of entities or with process
