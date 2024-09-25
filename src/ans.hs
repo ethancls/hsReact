@@ -34,7 +34,7 @@ verifReac sequence reaction =
   all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
 -- Test des séquences sur l'ensemble des réactions
-verifSequence :: [Sequence] -> [Reaction] -> [Entites]
+verifSequence :: [Sequence] -> [Reaction] -> Sequence
 verifSequence sequences reactions =
   concatMap produits (filter (\reaction -> any (`verifReac` reaction) sequences) reactions)
 
@@ -57,7 +57,8 @@ alphaSystem =
 
 betaSequence :: [Sequence]
 betaSequence =
-  [ ["egf", "e"]
+  [ ["egf", "e"],
+    ["erk12", "egf"]
   ]
 
 -- ******** PROCESSUS D'ENVIRONNEMENT *********
