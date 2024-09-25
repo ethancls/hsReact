@@ -36,13 +36,13 @@ verifReac sequence reaction =
 -- Test des séquences sur l'ensemble des réactions
 verifSequence :: [Sequence] -> [Reaction] -> [[Entites]]
 verifSequence sequences reactions =
-  [ concat [produits reaction | reaction <- reactions, verifReac sequence reaction] 
+  [ concat [produits reaction | reaction <- reactions, verifReac sequence reaction]
   | sequence <- sequences
   ]
 
 -- Verification de présence d'une entité
 verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
-verifEntite entite sequences reactions = 
+verifEntite entite sequences reactions =
   any (elem entite) (verifSequence sequences reactions)
 
 -- ********* SYSTEMES DE TESTS *********
@@ -81,6 +81,22 @@ data Generateur = String -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recur
 {- processus :: [Entites] -> Generateur -> [Reaction] -> [Entites]
 processus = loop state return
 processus e g r = (verifSequence g(e) r)  g  r -}
+processus :: Sequence -> String -> [Reaction] -> [Sequence]
+processus env g reactions = takeWhileDifferent (iterate (applyReactionsUnique reactions) (env ++ [g]))
+
+applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
+applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
+  where
+    addUnique = foldl (\acc' p -> if p `elem` acc' then acc' else acc' ++ [p])
+
+applyReactions :: [Reaction] -> Sequence -> Sequence
+applyReactions reactions env = env ++ concat [produits r | r <- reactions, verifReac env r]
+
+takeWhileDifferent :: Eq a => [a] -> [a]
+takeWhileDifferent (x:y:xs)
+  | x == y    = [x]
+  | otherwise = x : takeWhileDifferent (y:xs)
+takeWhileDifferent xs = xs
 
 -- ******** TODO *********
 
