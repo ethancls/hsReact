@@ -90,9 +90,6 @@ applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reac
   where
     addUnique = foldl (\acc' p -> if p `elem` acc' then acc' else acc' ++ [p])
 
-applyReactions :: [Reaction] -> Sequence -> Sequence
-applyReactions reactions env = env ++ concat [produits r | r <- reactions, verifReac env r]
-
 takeWhileDifferent :: Eq a => [a] -> [a]
 takeWhileDifferent (x:y:xs)
   | x == y    = [x]
