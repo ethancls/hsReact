@@ -1,6 +1,4 @@
-import Data.Bits (Bits (xor))
 import Data.Char (GeneralCategory)
-import Data.List (nub)
 import Data.Void (Void)
 
 {-
