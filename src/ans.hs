@@ -1,5 +1,6 @@
 import Data.Char (GeneralCategory)
 import Data.Void (Void)
+import Test.QuickCheck (Gen)
 
 {-
 
@@ -76,12 +77,12 @@ réapplique les regles avec encore une entite aleatoire
 fournie par la fonction
 -}
 
-data Generateur = String -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
+type Generateur = Entites -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
 
 {- processus :: [Entites] -> Generateur -> [Reaction] -> [Entites]
 processus = loop state return
 processus e g r = (verifSequence g(e) r)  g  r -}
-processus :: Sequence -> String -> [Reaction] -> [Sequence]
+processus :: Sequence -> Generateur -> [Reaction] -> [Sequence]
 processus env g reactions = takeWhileDifferent (iterate (applyReactionsUnique reactions) (env ++ [g]))
 
 applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
