@@ -34,13 +34,15 @@ verifReac sequence reaction =
   all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
 -- Test des séquences sur l'ensemble des réactions
-verifSequence :: [Sequence] -> [Reaction] -> Sequence
+verifSequence :: [Sequence] -> [Reaction] -> [Sequence]
 verifSequence sequences reactions =
-  concatMap produits (filter (\reaction -> any (`verifReac` reaction) sequences) reactions)
+  [produits reaction | reaction <- reactions, any (`verifReac` reaction) sequences]
 
 -- Verification de présence d'une entité
-verifEntite :: [Entites] -> [Sequence] -> [Reaction] -> Bool
-verifEntite entites sequences reactions = any (`elem` verifSequence sequences reactions) entites
+-- Verification de présence d'une entité
+verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
+verifEntite entite sequences reactions = 
+  any (elem entite) (verifSequence sequences reactions)
 
 -- ********* SYSTEMES DE TESTS *********
 
