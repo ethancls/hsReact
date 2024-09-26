@@ -1,28 +1,10 @@
-import Data.Bits (Bits (xor))
-import Data.Char (GeneralCategory)
 import Data.List (nub)
-import Data.Void (Void)
+import System.Random (randomRIO)
 
-{-
-
-\**** REACTION SYSTEMS ****
-
-\$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
-\$ D.PAHALIN
-
-Simple project for testing systems under string
-format with sequences of entities or with process
-on the environment.
-
-We can also define a system as a set of logical propositions i.e P = {φ1 = e1 ∧¬e2, ...}
-
--}
-
--- ******* DEFINITIONS DES TYPES | STRUCTURES *******
+-- ******** DÉFINITIONS DE TYPES ********
 
 -- Définitions des types
 type Entites = String
-
 type Sequence = [Entites]
 
 -- Définition d'une réaction avec les réactifs, les inhibiteurs et les produits
@@ -35,80 +17,92 @@ verifReac :: Sequence -> Reaction -> Bool
 verifReac sequence reaction =
     all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
--- Test des séquences sur l'ensemble des réactions
-verifSequence :: [Sequence] -> [Reaction] -> [Sequence]
-verifSequence sequences reactions =
-    [ concat [produits reaction | reaction <- reactions, verifReac sequence reaction]
-    | sequence <- sequences
-    ]
-
--- Verification de présence d'une entité
-verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
-verifEntite entite sequences reactions =
-    any (elem entite) (verifSequence sequences reactions)
-
--- ********* SYSTEMES DE TESTS *********
-
--- Système de réactions
-
-alphaSystem :: [Reaction]
-alphaSystem =
-    [ Reaction ["egf"] ["e", "p"] ["erbb1"]
-    , Reaction ["egf"] [] ["erk12"]
-    , Reaction ["erk12"] [] ["p70s6k"]
-    ]
-
--- Séquences de tests
-
-betaSequence :: [Sequence]
-betaSequence =
-    [ ["egf"]
-    , ["egf", "e"]
-    , ["erk12"]
-    , ["p"]
-    ]
-
--- ******** PROCESSUS D'ENVIRONNEMENT *********
-
-{-
-Fonction de processus : fonction qui pars de empty,
-ajoute ce qu'elle veut a l'env et produit une sortie,
-on reutilise la sortie dans l'environnement t+1 et on
-réapplique les regles avec encore une entite aleatoire
-fournie par la fonction
--}
-
-data Generateur = String -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
-
-{- processus :: [Entites] -> Generateur -> [Reaction] -> [Entites]
-processus = loop state return
-processus e g r = (verifSequence g(e) r)  g  r -}
-processus :: Sequence -> String -> [Reaction] -> [Sequence]
--- processus env g reactions = takeWhileDifferent (iterate (applyReactionsUnique reactions) (env ++ [g]))
-processus env g reactions = notreNub (iterate (applyReactionsUnique reactions) (env ++ [g]))
-
+-- Appliquer les réactions et maintenir des produits uniques
 applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
-applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
-  where
-    addUnique = foldl (\acc' p -> if p `elem` acc' then acc' else acc' ++ [p])
+applyReactionsUnique reactions env = nub (concat [produits r | r <- reactions, verifReac env r])
 
-applyReactions :: [Reaction] -> Sequence -> Sequence
-applyReactions reactions env = env ++ concat [produits r | r <- reactions, verifReac env r]
+-- ******** GÉNÉRATION D'ENTITÉS *********
 
-takeWhileDifferent :: (Eq a) => [a] -> [a]
-takeWhileDifferent (x : y : xs)
-    | x == y = [x]
-    | otherwise = x : takeWhileDifferent (y : xs)
-takeWhileDifferent xs = xs
+-- Générer une entité aléatoire ("a" ou "b")
+genEntite :: IO Entites
+genEntite = do
+    idx <- randomRIO (0, 1)  -- Générer un indice pour "a" ou "b"
+    return [toEnum (fromEnum 'a' + idx)]
 
-notreNub :: (Eq a) => [a] -> [a]
-notreNub lst = reverse (notreNubAux lst [])
-  where
-    notreNubAux [] acc = acc
-    notreNubAux (x : xs) acc = if x `elem` acc then notreNubAux [] acc else notreNubAux xs (x : acc)
+-- Générer une séquence d'entités aléatoires de taille donnée
+genEntites :: Int -> IO Sequence
+genEntites 0 = return []
+genEntites n = do
+    entite <- genEntite
+    rest <- genEntites (n - 1)
+    return (entite : rest)
 
--- ******** TODO *********
+-- ******** LECTURE DES RÉACTIONS À PARTIR D'UN FICHIER *********
 
--- Lecture des réactions dans un fichier
+-- Fonction pour découper une chaîne en fonction d'un séparateur
+splitBy :: Char -> String -> [String]
+splitBy delimiter = foldr (\c l -> if c == delimiter then [] : l else (c : head l) : tail l) [[]]
 
--- Langage proposition logique pour exprimer le systeme (egf ∧ ¬e ∧ ¬p -> errb1)
+-- Fonction pour parser une ligne de réaction du fichier
+parseReaction :: String -> Reaction
+parseReaction str =
+    let parts = splitBy ';' str
+        reactifs = splitBy ',' (head parts)
+        inhibiteurs = splitBy ',' (parts !! 1)
+        produits = splitBy ',' (parts !! 2)
+    in Reaction reactifs inhibiteurs produits
+
+-- Fonction pour charger les réactions depuis un fichier
+loadReactions :: FilePath -> IO [Reaction]
+loadReactions path = do
+    contents <- readFile path
+    return $ map parseReaction (lines contents)
+
+-- ******** PROCESSUS AVEC ITÉRATIONS *********
+
+-- Fonction récursive pour simuler des interactions jusqu'à une boucle ou la production d'une entité spécifique
+recK :: Sequence -> Sequence -> [Reaction] -> Int -> String -> IO ()
+recK env context reactions maxIterations targetEntite = processusAux env context reactions 0
+    where
+        processusAux :: Sequence -> Sequence -> [Reaction] -> Int -> IO ()
+        processusAux currentEnv currentContext rs iteration
+            | iteration >= maxIterations = putStrLn "Nombre maximum d'itérations atteint."
+            | targetEntite `elem` currentEnv = putStrLn $ "L'entité " ++ targetEntite ++ " a été produite !"
+            | otherwise = do
+                -- Ajouter le contexte à l'environnement actuel
+                let updatedEnv = nub (currentEnv ++ currentContext)
+                
+                -- Appliquer les réactions et récupérer les nouveaux produits
+                let newEnv = applyReactionsUnique rs updatedEnv
+                
+                -- Si aucun nouveau produit n'est généré, cela signifie qu'il n'y a pas de nouvelles réactions
+                if null newEnv
+                then putStrLn "Aucun nouveau produit généré, fin du processus."
+                else do
+                    putStrLn $ "Iteration " ++ show iteration ++ ": " ++ show newEnv
+                    
+                    -- Recur avec l'environnement mis à jour et uniquement les produits comme nouvel environnement
+                    newContext <- genEntites 1 -- Générer un nouveau contexte aléatoire
+                    processusAux newEnv newContext rs (iteration + 1)
+
+-- ******** EXEMPLE D'UTILISATION *********
+
+main :: IO ()
+main = do
+    -- Charger les réactions depuis un fichier texte
+    reactions <- loadReactions "RS.txt"
+
+    putStrLn "Réactions chargées :"
+    print reactions
+    
+    -- Initialiser une séquence vide
+    let initialSeq = []
+
+    -- Définir une entité cible pour l'arrêt
+    let targetEntite = "d"
+
+    putStrLn "Entité cible :"
+    print targetEntite
+
+    -- Lancer le processus aléatoire avec un nombre maximum d'itérations
+    recK initialSeq initialSeq reactions 10 targetEntite
