@@ -1,6 +1,3 @@
-import Data.Char (GeneralCategory)
-import Data.Void (Void)
-
 {-
 
 \**** REACTION SYSTEMS ****
@@ -81,15 +78,30 @@ data Generateur = String -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recur
 {- processus :: [Entites] -> Generateur -> [Reaction] -> [Entites]
 processus = loop state return
 processus e g r = (verifSequence g(e) r)  g  r -}
+
+-- processus [] "egf" alphaSystem
 processus :: Sequence -> String -> [Reaction] -> [Sequence]
 -- processus env g reactions = takeWhileDifferent (iterate (applyReactionsUnique reactions) (env ++ [g]))
 processus env g reactions = notreNub (iterate (applyReactionsUnique reactions) (env ++ [g]))
 
+-- processusRec [] "egf" alphaSystem
+processusRec :: Sequence -> String -> [Reaction] -> [Sequence]
+processusRec env g reactions =
+    let initEnv = env ++ [g]
+     in notreNub (processusRecAux reactions initEnv)
+  where
+    processusRecAux :: [Reaction] -> Sequence -> [Sequence]
+    processusRecAux reactions env =
+        let newEnv = applyReactionsUnique reactions env
+         in env : processusRecAux reactions newEnv
+
+-- applyReactionsUnique alphaSystem ["egf", "erk12"]
 applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
 applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
   where
     addUnique = foldl (\acc' p -> if p `elem` acc' then acc' else acc' ++ [p])
 
+-- applyReactions alphaSystem ["egf", "erk12"]
 applyReactions :: [Reaction] -> Sequence -> Sequence
 applyReactions reactions env = env ++ concat [produits r | r <- reactions, verifReac env r]
 
@@ -99,6 +111,7 @@ takeWhileDifferent (x : y : xs)
     | otherwise = x : takeWhileDifferent (y : xs)
 takeWhileDifferent xs = xs
 
+-- notreNub (cycle [1,2,3])
 notreNub :: (Eq a) => [a] -> [a]
 notreNub lst = reverse (notreNubAux lst [])
   where
