@@ -16,15 +16,20 @@ data Arbre a = Feuille a | Noeud a [Arbre a] deriving (Show)
 -- ******** FONCTIONS DE VERIFICATIONS ********
 
 -- Vérifier si une réaction est activée (c'est-à-dire tous les réactifs sont présents et aucun inhibiteur n'est présent)
+-- verifReac ["a","c","d"] (Reaction ["a"] ["b"] ["c"])
 verifReac :: Sequence -> Reaction -> Bool
 verifReac sequence reaction =
     all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
 -- Appliquer les réactions pour produire de nouvelles entités
-applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
-applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
+-- applyReactionsUnique ["a","c"] alphaSystem --> ["c","d"]
+applyReactionsUnique :: Sequence -> [Reaction] -> Sequence
+applyReactionsUnique sequence reactions = foldl appliquerReactionsPourEntite [] sequence
   where
-    addUnique = foldl (\acc x -> if x `elem` acc then acc else acc ++ [x])
+    appliquerReactionsPourEntite acc entite = foldl ajouterUnique acc (concatMap produitsSiActive reactions) -- Appliquer les réactions pour une entité spécifique et mettre à jour la séquence finale
+      where
+        produitsSiActive r = if verifReac [entite] r then produits r else []
+    ajouterUnique acc x = if x `elem` acc then acc else acc ++ [x] -- Ajouter des éléments uniques à la séquence résultante
 
 -- ******** PROCESSUS RÉCURSIF AVEC CONSTRUCTION D'UN ARBRE N-AIRE ********
 
@@ -35,11 +40,11 @@ processusRecNAire env reactions generateur depth history
     | depth == 0 = Feuille (env, env)
     | otherwise =
         -- Appliquer les réactions à l'environnement actuel
-        let envReagit = applyReactionsUnique reactions env
+        let envReagit = applyReactionsUnique env reactions
             newHistory = env : history
             -- Créer les sous-arbres seulement si la nouvelle séquence n'a pas déjà été traitée
             sousArbres =
-                [ processusRecNAire (applyReactionsUnique reactions (envReagit ++ [e])) reactions generateur (depth - 1) newHistory
+                [ processusRecNAire (applyReactionsUnique (envReagit ++ [e]) reactions) reactions generateur (depth - 1) newHistory
                 | e <- generateur
                 , notElem (envReagit ++ [e]) newHistory
                 ]
@@ -88,15 +93,16 @@ main = do
     -- Utilisation d'un générateur simple
     let generateur = ["a", "b"] -- Générateur de nouvelles entités
     -- Construction de l'arbre avec une profondeur maximale (ici, égale à la taille du générateur)
-    let arbrePossibilites = processusRecNAire initialEnv reactions generateur 3 []
+    let arbrePossibilites = processusRecNAire initialEnv reactions generateur 1 []
 
     -- Affichage de l'arbre complet avec indentation
-    putStrLn "===== Affichage de l'arbre complet ====="
+    putStrLn "\n\n===== Affichage de l'arbre complet ====="
     printArbreComplet arbrePossibilites 0
 
     -- Affichage du processus récursif avec contexte
-    putStrLn "\n===== Suivi du processus récursif ====="
+    putStrLn "\n\n===== Suivi du processus récursif ====="
     afficheArbre initialEnv arbrePossibilites generateur reactions
+    putStrLn "\n\n"
 
 -- ******** FONCTION POUR LIRE LES REACTIONS D'UN FICHIER *********
 
