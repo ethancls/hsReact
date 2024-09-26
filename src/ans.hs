@@ -93,17 +93,16 @@ processusRec env g reactions =
     processusRecAux :: [Reaction] -> Sequence -> [Sequence]
     processusRecAux reactions env =
         let newEnv = applyReactionsUnique reactions env
-         in env : processusRecAux reactions newEnv
+         in if null newEnv
+                then []
+                else newEnv : processusRecAux reactions newEnv
 
 -- applyReactionsUnique alphaSystem ["egf", "erk12"]
+-- avec [] nous aurons seulement de nouveaux produits
 applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
-applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
+applyReactionsUnique reactions env = foldl addUnique [] [produits r | r <- reactions, verifReac env r]
   where
     addUnique = foldl (\acc' p -> if p `elem` acc' then acc' else acc' ++ [p])
-
--- applyReactions alphaSystem ["egf", "erk12"]
-applyReactions :: [Reaction] -> Sequence -> Sequence
-applyReactions reactions env = env ++ concat [produits r | r <- reactions, verifReac env r]
 
 takeWhileDifferent :: (Eq a) => [a] -> [a]
 takeWhileDifferent (x : y : xs)
@@ -117,6 +116,24 @@ notreNub lst = reverse (notreNubAux lst [])
   where
     notreNubAux [] acc = acc
     notreNubAux (x : xs) acc = if x `elem` acc then notreNubAux [] acc else notreNubAux xs (x : acc)
+
+-- ******** Vérification du produit d'entité *********
+
+{-
+Vérifier si une entité donnée est produite dans un
+RS lors de l'interaction avec un processus K
+-}
+
+testReactionSystem :: [Reaction]
+testReactionSystem = [Reaction ["a"] ["b"] ["c"], Reaction ["c"] ["a"] ["d"]]
+
+processK :: Sequence -> [Reaction] -> [Sequence]
+processK env reactions = notreNub (iterate (applyReactionsUnique reactions) env)
+
+-- checkEntityProduced "d"
+checkEntityProduced :: String -> Sequence -> [Reaction] -> Bool
+checkEntityProduced entity initEnv reactions =
+    entity `elem` concat (processK initEnv reactions)
 
 -- ******** TODO *********
 
