@@ -1,14 +1,15 @@
-import Data.List (nub)
-import System.Random (randomRIO)
-
--- ******** DÉFINITIONS DE TYPES ********
+import Data.List (intercalate)
 
 -- Définitions des types
 type Entites = String
+type Generateur = [Entites]
 type Sequence = [Entites]
 
 -- Définition d'une réaction avec les réactifs, les inhibiteurs et les produits
 data Reaction = Reaction {reactifs :: [Entites], inhibiteurs :: [Entites], produits :: [Entites]} deriving (Show, Eq)
+
+-- Définition d'un arbre N-aire avec suivi de l'historique
+data Arbre a = Feuille a | Noeud a [Arbre a] deriving (Show)
 
 -- ******** FONCTIONS DE VERIFICATIONS ********
 
@@ -17,27 +18,74 @@ verifReac :: Sequence -> Reaction -> Bool
 verifReac sequence reaction =
     all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
--- Appliquer les réactions et maintenir des produits uniques
+-- Appliquer les réactions pour produire de nouvelles entités
 applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
-applyReactionsUnique reactions env = nub (concat [produits r | r <- reactions, verifReac env r])
+applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
+  where
+    addUnique acc' p = foldl (\acc x -> if x `elem` acc then acc else acc ++ [x]) acc' p
 
--- ******** GÉNÉRATION D'ENTITÉS *********
+-- ******** PROCESSUS RÉCURSIF AVEC CONSTRUCTION D'UN ARBRE N-AIRE ********
 
--- Générer une entité aléatoire ("a" ou "b")
-genEntite :: IO Entites
-genEntite = do
-    idx <- randomRIO (0, 1)  -- Générer un indice pour "a" ou "b"
-    return [toEnum (fromEnum 'a' + idx)]
+-- Fonction pour générer l'arbre avec toutes les possibilités
+processusRecNAire :: Sequence -> [Reaction] -> Generateur -> Int -> [Sequence] -> Arbre Sequence
+processusRecNAire env reactions [] _ _ = Feuille env  -- Si le générateur est vide, on arrête ici
+processusRecNAire env reactions generateur depth history
+    | depth == 0 = Feuille env  -- Si la profondeur maximale est atteinte, on arrête
+    | otherwise =
+        -- Appliquer les réactions à l'environnement actuel
+        let envReagit = applyReactionsUnique reactions env
+            newHistory = env : history  -- Ajouter l'environnement courant à l'historique
+        -- Créer un nœud avec les sous-arbres générés en ajoutant chaque entité du générateur
+        in Noeud envReagit [processusRecNAire (applyReactionsUnique reactions (envReagit ++ [e])) reactions (filter (/= e) generateur) (depth - 1) newHistory | e <- generateur]
 
--- Générer une séquence d'entités aléatoires de taille donnée
-genEntites :: Int -> IO Sequence
-genEntites 0 = return []
-genEntites n = do
-    entite <- genEntite
-    rest <- genEntites (n - 1)
-    return (entite : rest)
+-- ******** AFFICHAGE DU PROCESSUS ********
 
--- ******** LECTURE DES RÉACTIONS À PARTIR D'UN FICHIER *********
+-- Fonction pour afficher l'arbre avec le contexte
+afficheArbre :: Sequence -> Arbre Sequence -> Generateur -> [Reaction] -> IO ()
+afficheArbre _ (Feuille _) _ _ = return ()  -- Ne rien afficher pour les feuilles
+afficheArbre input (Noeud sequences enfants) (context:generateur) reactions = do
+    -- Ajouter le contexte à l'environnement
+    let updatedEnv = input ++ [context]
+    -- Appliquer les réactions immédiatement après avoir mis à jour l'environnement
+    let envAfterReactions = foldl (\acc r -> if verifReac updatedEnv r then acc ++ produits r else acc) [] reactions
+    let nextOutput = case envAfterReactions of
+                        [] -> "empty"  -- Si l'input est vide, "empty"
+                        _ -> intercalate ", " envAfterReactions  -- Sinon, afficher les entités séparées par une virgule
+    -- Construire la liste dynamique du processus rec X. (a.X + b.X + c.X + ...)
+    let processusStr = "rec X. (" ++ intercalate " + " (map (++ ".X") (context:generateur)) ++ ")"
+    -- Afficher la ligne du processus
+    putStrLn $ "Input: " ++ show input ++ " , proc: " ++ processusStr ++ ", context: " ++ context ++ ", output: " ++ nextOutput
+    -- Afficher les sous-arbres enfants avec l'environnement mis à jour
+    mapM_ (\enfant -> afficheArbre envAfterReactions enfant generateur reactions) enfants
+
+
+-- ******** SYSTÈME DE TEST *********
+
+-- Système de réactions (vous pouvez changer les réactions ici)
+alphaSystem :: [Reaction]
+alphaSystem =
+    [ Reaction ["a"] ["b"] ["c"]  -- Si "a" est présent sans "b", "c" est produit
+    , Reaction ["c"] ["a"] ["d"]  -- Si "c" est présent sans "a", "d" est produit
+    ]
+
+-- ******** EXEMPLE D'UTILISATION *********
+
+main :: IO ()
+main = do
+    -- Charger les réactions
+    let reactions = alphaSystem  -- Ici, les réactions sont codées en dur pour le test
+
+    -- Environnement initial avec des entités
+    let initialEnv = []  -- Environnement vide au départ
+    -- Utilisation d'un générateur simple
+    let generateur = ["a", "b"]  -- Générateur de nouvelles entités
+    -- Construction de l'arbre avec une profondeur maximale (ici, égale à la taille du générateur)
+    let arbrePossibilites = processusRecNAire initialEnv reactions generateur (length generateur) []
+
+    -- Affichage de l'arbre des possibilités avec contexte
+    afficheArbre initialEnv arbrePossibilites generateur reactions
+
+-- ******** FONCTION POUR LIRE LES REACTIONS D'UN FICHIER *********
 
 -- Fonction pour découper une chaîne en fonction d'un séparateur
 splitBy :: Char -> String -> [String]
@@ -57,52 +105,3 @@ loadReactions :: FilePath -> IO [Reaction]
 loadReactions path = do
     contents <- readFile path
     return $ map parseReaction (lines contents)
-
--- ******** PROCESSUS AVEC ITÉRATIONS *********
-
--- Fonction récursive pour simuler des interactions jusqu'à une boucle ou la production d'une entité spécifique
-recK :: Sequence -> Sequence -> [Reaction] -> Int -> String -> IO ()
-recK env context reactions maxIterations targetEntite = processusAux env context reactions 0
-    where
-        processusAux :: Sequence -> Sequence -> [Reaction] -> Int -> IO ()
-        processusAux currentEnv currentContext rs iteration
-            | iteration >= maxIterations = putStrLn "Nombre maximum d'itérations atteint."
-            | targetEntite `elem` currentEnv = putStrLn $ "L'entité " ++ targetEntite ++ " a été produite !"
-            | otherwise = do
-                -- Ajouter le contexte à l'environnement actuel
-                let updatedEnv = nub (currentEnv ++ currentContext)
-                
-                -- Appliquer les réactions et récupérer les nouveaux produits
-                let newEnv = applyReactionsUnique rs updatedEnv
-                
-                -- Si aucun nouveau produit n'est généré, cela signifie qu'il n'y a pas de nouvelles réactions
-                if null newEnv
-                then putStrLn "Aucun nouveau produit généré, fin du processus."
-                else do
-                    putStrLn $ "Iteration " ++ show iteration ++ ": " ++ show newEnv
-                    
-                    -- Recur avec l'environnement mis à jour et uniquement les produits comme nouvel environnement
-                    newContext <- genEntites 1 -- Générer un nouveau contexte aléatoire
-                    processusAux newEnv newContext rs (iteration + 1)
-
--- ******** EXEMPLE D'UTILISATION *********
-
-main :: IO ()
-main = do
-    -- Charger les réactions depuis un fichier texte
-    reactions <- loadReactions "RS.txt"
-
-    putStrLn "Réactions chargées :"
-    print reactions
-    
-    -- Initialiser une séquence vide
-    let initialSeq = []
-
-    -- Définir une entité cible pour l'arrêt
-    let targetEntite = "d"
-
-    putStrLn "Entité cible :"
-    print targetEntite
-
-    -- Lancer le processus aléatoire avec un nombre maximum d'itérations
-    recK initialSeq initialSeq reactions 10 targetEntite
