@@ -22,41 +22,46 @@ verifReac sequence reaction =
 applyReactionsUnique :: [Reaction] -> Sequence -> Sequence
 applyReactionsUnique reactions env = foldl addUnique env [produits r | r <- reactions, verifReac env r]
   where
-    addUnique acc' p = foldl (\acc x -> if x `elem` acc then acc else acc ++ [x]) acc' p
+    addUnique = foldl (\acc x -> if x `elem` acc then acc else acc ++ [x])
 
 -- ******** PROCESSUS RÉCURSIF AVEC CONSTRUCTION D'UN ARBRE N-AIRE ********
 
 -- Fonction pour générer l'arbre avec toutes les possibilités
-processusRecNAire :: Sequence -> [Reaction] -> Generateur -> Int -> [Sequence] -> Arbre Sequence
-processusRecNAire env reactions [] _ _ = Feuille env  -- Si le générateur est vide, on arrête ici
+processusRecNAire :: Sequence -> [Reaction] -> Generateur -> Int -> [Sequence] -> Arbre (Sequence, Sequence)
+processusRecNAire env reactions [] _ _ = Feuille (env, env)
 processusRecNAire env reactions generateur depth history
-    | depth == 0 = Feuille env  -- Si la profondeur maximale est atteinte, on arrête
+    | depth == 0 = Feuille (env, env)
     | otherwise =
         -- Appliquer les réactions à l'environnement actuel
         let envReagit = applyReactionsUnique reactions env
-            newHistory = env : history  -- Ajouter l'environnement courant à l'historique
-        -- Créer un nœud avec les sous-arbres générés en ajoutant chaque entité du générateur
-        in Noeud envReagit [processusRecNAire (applyReactionsUnique reactions (envReagit ++ [e])) reactions (filter (/= e) generateur) (depth - 1) newHistory | e <- generateur]
+            newHistory = env : history
+            -- Créer les sous-arbres seulement si la nouvelle séquence n'a pas déjà été traitée
+            sousArbres = [processusRecNAire (applyReactionsUnique reactions (envReagit ++ [e])) reactions generateur (depth - 1) newHistory
+                            | e <- generateur, notElem (envReagit ++ [e]) newHistory]
+        in Noeud (env, envReagit) sousArbres
 
 -- ******** AFFICHAGE DU PROCESSUS ********
 
--- Fonction pour afficher l'arbre avec le contexte
-afficheArbre :: Sequence -> Arbre Sequence -> Generateur -> [Reaction] -> IO ()
+afficheArbre :: Sequence -> Arbre (Sequence, Sequence) -> Generateur -> [Reaction] -> IO ()
 afficheArbre _ (Feuille _) _ _ = return ()  -- Ne rien afficher pour les feuilles
-afficheArbre input (Noeud sequences enfants) (context:generateur) reactions = do
-    -- Ajouter le contexte à l'environnement
-    let updatedEnv = input ++ [context]
-    -- Appliquer les réactions immédiatement après avoir mis à jour l'environnement
-    let envAfterReactions = foldl (\acc r -> if verifReac updatedEnv r then acc ++ produits r else acc) [] reactions
-    let nextOutput = case envAfterReactions of
-                        [] -> "empty"  -- Si l'input est vide, "empty"
-                        _ -> intercalate ", " envAfterReactions  -- Sinon, afficher les entités séparées par une virgule
+afficheArbre input (Noeud (env, output) enfants) (context:generateur) reactions = do
     -- Construire la liste dynamique du processus rec X. (a.X + b.X + c.X + ...)
     let processusStr = "rec X. (" ++ intercalate " + " (map (++ ".X") (context:generateur)) ++ ")"
     -- Afficher la ligne du processus
-    putStrLn $ "Input: " ++ show input ++ " , proc: " ++ processusStr ++ ", context: " ++ context ++ ", output: " ++ nextOutput
+    putStrLn $ "Input: " ++ show env ++ " , proc: " ++ processusStr ++ ", context: " ++ context ++ ", output: " ++ show output
     -- Afficher les sous-arbres enfants avec l'environnement mis à jour
-    mapM_ (\enfant -> afficheArbre envAfterReactions enfant generateur reactions) enfants
+    case enfants of
+        [] -> return ()  -- Handle the case where enfants is an empty list
+        _  -> mapM_ (\enfant -> afficheArbre output enfant generateur reactions) enfants
+
+
+-- Fonction pour imprimer l'arbre entier de manière récursive
+printArbreComplet :: Show a => Arbre a -> Int -> IO ()
+printArbreComplet (Feuille val) indent = putStrLn (replicate indent '-' ++ " Feuille: " ++ show val)
+printArbreComplet (Noeud val enfants) indent = do
+    putStrLn (replicate indent '-' ++ " Noeud: " ++ show val)
+    putStrLn (replicate (indent + 2) '-' ++ " Enfants: ")
+    mapM_ (\enfant -> printArbreComplet enfant (indent + 4)) enfants
 
 
 -- ******** SYSTÈME DE TEST *********
@@ -78,11 +83,16 @@ main = do
     -- Environnement initial avec des entités
     let initialEnv = []  -- Environnement vide au départ
     -- Utilisation d'un générateur simple
-    let generateur = ["a", "b"]  -- Générateur de nouvelles entités
+    let generateur = ["a","b"]  -- Générateur de nouvelles entités
     -- Construction de l'arbre avec une profondeur maximale (ici, égale à la taille du générateur)
-    let arbrePossibilites = processusRecNAire initialEnv reactions generateur (length generateur) []
+    let arbrePossibilites = processusRecNAire initialEnv reactions generateur 3 []
 
-    -- Affichage de l'arbre des possibilités avec contexte
+    -- Affichage de l'arbre complet avec indentation
+    putStrLn "===== Affichage de l'arbre complet ====="
+    printArbreComplet arbrePossibilites 0
+
+    -- Affichage du processus récursif avec contexte
+    putStrLn "\n===== Suivi du processus récursif ====="
     afficheArbre initialEnv arbrePossibilites generateur reactions
 
 -- ******** FONCTION POUR LIRE LES REACTIONS D'UN FICHIER *********
