@@ -133,30 +133,19 @@ testReactions =
     , Reaction ["c"] ["a"] ["d"]
     ]
 
--- Vérifier si une entité est produite dans un RS lors de l'interaction avec un processus K
--- verifEntiteProduiteAvecProcessusK "d" [] testReactions testProcess
--- verifEntiteProduiteAvecProcessusK :: Entites -> Sequence -> [Reaction] -> Sequence -> Bool
--- verifEntiteProduiteAvecProcessusK entiteCible envInitial reactions processus =
---     entiteCible `elem` concat (processusKRec envInitial processus reactions)
-
--- entiteProduiteAvecProcessusK [] testReactions testProcess
--- entiteProduiteAvecProcessusK :: Sequence -> [Reaction] -> Sequence -> Sequence
--- entiteProduiteAvecProcessusK envInitial reactions processus = concat (processusKRec envInitial processus reactions)
-
 -- Processus K, appliquant récursivement les réactions et ajoutant des entités
--- processusKRec [] testReactions testProcess
-processusKRec :: Sequence -> [Reaction] -> Sequence -> [Sequence]
-processusKRec env reactions [] = [] -- Если больше нечего добавлять из процесса, завершаем
-processusKRec env reactions (p : ps) =
-    let envMisAJour = applyReactionsUnique reactions (env ++ [p]) -- Добавляем сущность из процесса
-     in if null envMisAJour
-            then []
-            else envMisAJour : processusKRec (envMisAJour ++ [p]) reactions ps -- Продолжаем с обновлённым окружением
-
--- Fonction auxiliaire pour ajouter des entités du processus récursivement
-ajouterEntite :: Sequence -> Sequence -> Sequence
-ajouterEntite [] env = env
-ajouterEntite (p : ps) env = env ++ [p]
+-- processusKRec testReactions testProcess
+processusKRec :: [Reaction] -> Sequence -> [Sequence]
+processusKRec reactions processus = processusKRecAux [] reactions processus
+  where
+    processusKRecAux :: Sequence -> [Reaction] -> Sequence -> [Sequence]
+    processusKRecAux env reactions [] = []
+    processusKRecAux env reactions (p : ps) =
+        let envMisAJour = applyReactionsUnique reactions (env ++ [p])
+            newEnv = env ++ envMisAJour
+         in if null envMisAJour
+                then []
+                else envMisAJour : processusKRecAux newEnv reactions ps
 
 -- ******** TODO *********
 
