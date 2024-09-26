@@ -73,7 +73,7 @@ réapplique les regles avec encore une entite aleatoire
 fournie par la fonction
 -}
 
-data Generateur = String -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
+type Generateur = [Entites] -- Rec.X (a.X + b.X) -> la fonction ajoute a ou b recursivement a la liste des entites presentes a (t - 1)
 
 {- processus :: [Entites] -> Generateur -> [Reaction] -> [Entites]
 processus = loop state return
@@ -85,9 +85,9 @@ processus :: Sequence -> String -> [Reaction] -> [Sequence]
 processus env g reactions = notreNub (iterate (applyReactionsUnique reactions) (env ++ [g]))
 
 -- processusRec [] "egf" alphaSystem
-processusRec :: Sequence -> String -> [Reaction] -> [Sequence]
-processusRec env g reactions =
-    let initEnv = env ++ [g]
+processusRec :: Sequence -> Generateur -> [Reaction] -> [Sequence]
+processusRec env gLst reactions =
+    let initEnv = env ++ gLst
      in notreNub (processusRecAux reactions initEnv)
   where
     processusRecAux :: [Reaction] -> Sequence -> [Sequence]
@@ -124,16 +124,39 @@ Vérifier si une entité donnée est produite dans un
 RS lors de l'interaction avec un processus K
 -}
 
-testReactionSystem :: [Reaction]
-testReactionSystem = [Reaction ["a"] ["b"] ["c"], Reaction ["c"] ["a"] ["d"]]
+testProcess :: Sequence
+testProcess = ["a", "b"]
 
-processK :: Sequence -> [Reaction] -> [Sequence]
-processK env reactions = notreNub (iterate (applyReactionsUnique reactions) env)
+testReactions :: [Reaction]
+testReactions =
+    [ Reaction ["a"] ["b"] ["c"]
+    , Reaction ["c"] ["a"] ["d"]
+    ]
 
--- checkEntityProduced "d"
-checkEntityProduced :: String -> Sequence -> [Reaction] -> Bool
-checkEntityProduced entity initEnv reactions =
-    entity `elem` concat (processK initEnv reactions)
+-- Vérifier si une entité est produite dans un RS lors de l'interaction avec un processus K
+-- verifEntiteProduiteAvecProcessusK "d" [] testReactions testProcess
+-- verifEntiteProduiteAvecProcessusK :: Entites -> Sequence -> [Reaction] -> Sequence -> Bool
+-- verifEntiteProduiteAvecProcessusK entiteCible envInitial reactions processus =
+--     entiteCible `elem` concat (processusKRec envInitial processus reactions)
+
+-- entiteProduiteAvecProcessusK [] testReactions testProcess
+-- entiteProduiteAvecProcessusK :: Sequence -> [Reaction] -> Sequence -> Sequence
+-- entiteProduiteAvecProcessusK envInitial reactions processus = concat (processusKRec envInitial processus reactions)
+
+-- Processus K, appliquant récursivement les réactions et ajoutant des entités
+-- processusKRec [] testReactions testProcess
+processusKRec :: Sequence -> [Reaction] -> Sequence -> [Sequence]
+processusKRec env reactions [] = [] -- Если больше нечего добавлять из процесса, завершаем
+processusKRec env reactions (p : ps) =
+    let envMisAJour = applyReactionsUnique reactions (env ++ [p]) -- Добавляем сущность из процесса
+     in if null envMisAJour
+            then []
+            else envMisAJour : processusKRec (envMisAJour ++ [p]) reactions ps -- Продолжаем с обновлённым окружением
+
+-- Fonction auxiliaire pour ajouter des entités du processus récursivement
+ajouterEntite :: Sequence -> Sequence -> Sequence
+ajouterEntite [] env = env
+ajouterEntite (p : ps) env = env ++ [p]
 
 -- ******** TODO *********
 
