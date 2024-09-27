@@ -88,3 +88,23 @@ betaSequence =
     , ["erk12", "egf"]
     , ["a", "c"]
     ]
+
+--    *********************** VARIABLES ***********************
+reactionTest1 :: [Reaction]
+reactionTest1 =
+    [ Reaction ["a"] ["b"] ["c"] -- Si "a" est présent sans "b", "c" est produit
+    , Reaction ["c"] ["a"] ["d"] -- Si "c" est présent sans "a", "d" est produit
+    ]
+
+generateurTest :: Generateur
+generateurTest = ["a", "b"]
+
+profondeur :: Integer
+profondeur = 5
+
+reactionTest2 :: [Reaction]
+reactionTest2 =
+    [ Reaction ["egf"] ["e", "p"] ["erbb1"]
+    , Reaction ["egf"] [] ["erk12"]
+    , Reaction ["erk12"] [] ["p70s6k"]
+    ]
