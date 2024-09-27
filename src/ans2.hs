@@ -1,3 +1,9 @@
+{-
+--    *********************** SYSTÈME DE RÉACTION ***********************
+
+\$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
+\$ D.PALAHIN 12106973 dmytro.palahin@edu.univ-paris13.fr
+-}
 {-# OPTIONS_GHC -Wno-x-partial #-}
 
 --    *********************** IMPORTS ***********************
