@@ -1,0 +1,185 @@
+--- Case study BT474 short-term experiments  
+
+load ../semantics .
+mod MySystem is
+ inc SEMANTICS .
+ ops akt bax cjun craf cyclinb1 cyclind1 cyclinD1 erbb1 erbb2 erbb3 erlotinib
+     fox01-3a gsk3a-b gska-b nfkb p38 p53 p70s6k pertuzumab pras pten rb rps6 stimulus
+     trastuzumab tsc2 mtor pdk1 e t p egf plcg hrg erk12 mek12 pkca  : -> Entity [ctor] .
+
+  eq reactions = 
+  [ (akt) ; ( empty ) ; (akt) ] ,
+  [ (erbb3) ; ( empty ) ; (akt) ] ,
+  [ (mtor) ; ( empty ) ; (akt) ] ,
+  [ (pdk1) ; ( empty ) ; (akt) ] ,
+  [ (erbb1) ; (e,p) ; (erbb1) ] ,
+  [ (egf) ; (e ,p) ; (erbb1) ] ,
+  [ (plcg) ; (e ,p) ; (erbb1) ] ,
+  [ (erbb2) ; (e ,t ,p) ; (erbb2) ] ,
+  [ (egf) ; (e, t ,p) ; (erbb2) ] ,
+  [ (erbb3) ; (e, t ,p) ; (erbb2) ] ,
+  [ (erbb3) ; (e, p) ; (erbb3) ] ,
+  [ (hrg) ; (e, p) ; (erbb3) ] ,
+  [ (erk12) ; ( empty ) ; (erk12) ] ,
+  [ (egf) ; ( empty ) ; (erk12) ] ,
+  [ (p) ; ( empty ) ; (erk12) ] ,
+  [ (mek12) ; ( empty ) ; (erk12) ] ,
+  [ (mek12) ; ( empty ) ; (mek12) ] ,
+  [ (erbb1) ; ( empty ) ; (mek12) ] ,
+  [ (erbb2) ; ( empty ) ; (mek12) ] ,
+  [ (erbb3) ; ( empty ) ; (mek12) ] ,
+  [ (mtor) ; ( empty ) ; (mtor) ] ,
+  [ (p) ; ( empty ) ; (mtor) ] ,
+  [ (akt) ; ( empty ) ; (mtor) ] ,
+  [ (p70s6k) ; ( empty ) ; (p70s6k) ] ,
+  [ (akt) ; ( empty ) ; (p70s6k) ] ,
+  [ (mtor) ; ( empty ) ; (p70s6k) ] ,
+  [ (erk12) ; ( empty ) ; (p70s6k) ] ,
+  [ (pdk1) ; ( empty ) ; (pdk1) ] ,
+  [ (erbb1) ; ( empty ) ; (pdk1) ] ,
+  [ (erbb2) ; ( empty ) ; (pdk1) ] ,
+  [ (erbb3) ; ( empty ) ; (pdk1) ] ,
+  [ (mek12) ; ( empty ) ; (pdk1) ] ,
+  [ (pkca) ; ( empty ) ; (pkca) ] ,
+  [ (plcg) ; ( empty ) ; (pkca) ] ,
+  [ (plcg) ; ( empty ) ; (plcg) ] ,
+  [ (egf) ; ( empty ) ; (plcg) ] ,
+  [ (erbb1) ; ( empty ) ; (plcg) ] ,
+  [ (erbb2) ; ( empty ) ; (plcg) ] ,
+  [ (erbb3) ; ( empty ) ; (plcg) ] .
+
+ --- A process providing hrg and egf 
+ op proc : -> Process .
+ eq proc = rec 'X . ({ (hrg, egf) } . 'X) .
+
+ var P         : Process   .
+ vars IN OUT C : SetEntity .
+
+endm
+
+eof 
+
+--- Checking if akt can be produced with the process proc 
+search [1]  init(proc) =>* STATE:State such that STATE:State |= akt .
+
+--- ***********
+--- EXPERIMENTS
+--- ***********
+--- Always hrg and egf must be preset. Now we test some of the combinations of
+--- the drugs 
+
+--- 1. Without any drug (X in the table). 
+--- 1.1 Search for AKT (Solution found)
+search [1]  init( rec 'X . ( { (hrg, egf) } . 'X )  )  =>* STATE:State such that STATE:State |= akt .
+--- 1.2 Search for erk1-2 (Solution found)
+search [1]  init( rec 'X . ( { (hrg, egf) } . 'X )  )  =>* STATE:State such that STATE:State |= erk12 .
+--- 1.3 Search for p70s6k (solution found)
+search [1]  init( rec 'X . ( { (hrg, egf) } . 'X )  )  =>* STATE:State such that STATE:State |= p70s6k .
+
+
+--- Reachability examples in the paper
+--- AKT is not produced in this case
+search [1] init( ! (hrg, egf, e, t) ) =>* STATE:State such that STATE:State |= (akt)  /\ STATE:State |= isSteady .
+--- AKT is produced here
+search [1] init( ! (hrg, egf, e, p) ) =>* STATE:State such that STATE:State |= (akt)  /\ STATE:State |= isSteady .
+
+
+--- The following queries require umaudemc (https://github.com/fadoss/umaudemc) for model checking 
+
+--- The same queries above using model checking 
+--- This is not true and a counterexample is shown 
+umaudemc check BT474 "init( ! (hrg, egf, e, t) )" "<> [] (isSteady /\ akt)" 
+--- This is true 
+umaudemc check BT474 "init( ! (hrg, egf, e, p) )" "<> [] (isSteady /\ akt)" 
+
+--- -----------------------------
+--- Steady state and using drugs 
+--- -----------------------------
+
+--- No drug provided
+umaudemc check BT474 "init( rec 'X . { (hrg, egf) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+--- Providing e
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+--- Providing p
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, p) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, p) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, p) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+--- Providing t
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+--- Providing e and p
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e , p) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e , p) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e , p) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+--- Providing e and t
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e, t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e, t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e, t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+--- Providing p and t
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, p, t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, p, t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, p, t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+--- Providing e, p and t
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e, p ,t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e, p ,t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( rec 'X . { (hrg, egf, e, p ,t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+
+--- --------------------------------
+--- Examples using mixtures of drugs
+--- --------------------------------
+
+--- 1. rec X. E . P . X
+umaudemc check BT474 "init( { (hrg, egf, p) } . (rec 'X . ( { e } . { p } . 'X ))  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( { (hrg, egf, p) } . (rec 'X . ( { e } . { p } . 'X ))  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( { (hrg, egf, p) } . (rec 'X . ( { e } . { p } . 'X ))  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check BT474 "init( { (hrg, egf, p) } . (rec 'X . ( { e } . { p } . { t } . 'X ))  )" "E <> (isSteady /\ akt)" 
+umaudemc check BT474 "init( { (hrg, egf, p) } . (rec 'X . ( { e } . { p } . { t } . 'X ))  )" "E <> (isSteady /\ erk12)" 
+umaudemc check BT474 "init( { (hrg, egf, p) } . (rec 'X . ( { e } . { p } . { t } . 'X ))  )" "E <> (isSteady /\ p70s6k)" 
+
+
+--- ---------------------
+--- Other experiments
+--- ---------------------
+
+--- E seems to be not enough for producing AKT. This makes the difference between Existential and A-Universal paths. 
+--- E phi is true but A phi is not (since the path e.e.e... does not satisfy the property)
+umaudemc check BT474 "init(  !(hrg, egf)  ||  (rec 'X . ( ({ e } . 'X) + ({ p } . 'X)))  )" "E <> (isSteady /\  akt)" 
+umaudemc check BT474 "init(  !(hrg, egf)  ||  (rec 'X . ( ({ e } . 'X) + ({ p } . 'X)))  )" "A <> (isSteady /\  akt)" 
+
+--- erk12 is reachable and, in the middle, akt is present 
+umaudemc check BT474 "init( { (hrg, egf, t) } . ( rec 'X . ( { t  } . 'X ))  )" "E ((A <> akt)  U (isSteady /\ erk12))" 
+
+--- Do not providing e in all the time units 
+umaudemc check BT474 "init( (rec 'Y . ({ (hrg, egf) } . 'Y)) || (rec 'X . ( ( [ (erbb1 or erbb2) --> { e } ] . 'X ) + ( [ ((erbb1 ^) and (erbb2 ^)) --> { empty } ] . 'X) ))  )" "[] (isSteady -> ~ akt)"
+umaudemc check BT474 "init( (rec 'Y . ({ (hrg, egf) } . 'Y)) || (rec 'X . ( ( [ (erbb1 or erbb2) --> { e } ] . 'X ) + ( [ ((erbb1 ^) and (erbb2 ^)) --> { empty } ] . 'X) ))  )" "O <> (~ erbb1 /\ ~ erbb2)"
+
+umaudemc check BT474 "init( !(hrg, egf)  || rec 'X . (if (erbb1 or erbb2) then  { e } . 'X else  { empty } . 'X))" "[] (isSteady -> ~ akt)"
+umaudemc check BT474 "init( !(hrg, egf)  || rec 'X . (if (erbb1 or erbb2) then  { e } . 'X else  { empty } . 'X))" "O <> (~ erbb1 /\ ~ erbb2)"
+
+--- Other properties
+umaudemc check BT474 "init( ! (hrg, egf)  )" "[] (erbb2 -> O erbb2)" 
+
+
+--- Akt is produced during the path
+umaudemc check BT474 "init( ! (hrg, egf, t)  )" "<> ( (akt /\ ~ isSteady) /\ O <> (akt /\ isSteady))"
+
+ --- Once pdk1 is present then inevitably akt is the steady state?
+umaudemc check BT474 "init( (rec 'Y . ( { (hrg, egf) } . 'Y)) || (rec 'X . ( ({e} . 'X) + ({ p } . 'X) + ({ t } . 'X) )))" "[] (pdk1 -> (<> []   akt))" 
+
+ --- It is not the case that PDK1 appears before erbb1 
+umaudemc check BT474 "init( (rec 'Y . ( { (hrg, egf) } . 'Y)) || (rec 'X . ( ({e} . 'X) + ({ p } . 'X) + ({ t } . 'X) )))" " ( erbb1  R ~ pdk1)" 
+

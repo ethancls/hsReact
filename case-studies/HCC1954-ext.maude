@@ -1,0 +1,94 @@
+--- Case study HCC1954 long-term experiments 
+load ../semantics .
+mod MySystem is
+ inc SEMANTICS .
+ ops akt bax cjun craf cyclinb1 cyclind1 e erbb1 erbb2 erbb3 erk12
+     foxo13a gsk3ab nfkb p p38 p53 p70s6k pras pten rb rps6 
+     s t tsc2 : -> Entity [ctor] .
+
+  eq reactions = 
+    [ akt ; pten ; akt ], 
+    [ cyclinb1 ; pten ; akt ], 
+    [ erbb1 ; pten ; akt ], 
+    [ erbb2 ; pten ; akt ], 
+    [ erbb3 ; pten ; akt ], 
+    [ bax ; empty ; bax ], 
+    [ cjun ; gsk3ab ; cjun ], 
+    [ craf ; erk12 ; craf ], 
+    [ erbb2 ; erk12 ; craf ], 
+    [ erbb1 ; erk12 ; craf ], 
+    [ cyclinb1 ; p53 ; cyclinb1 ], 
+    [ cyclind1 ; empty ; cyclind1 ], 
+    [ p70s6k ; empty ; cyclind1 ], 
+    [ cjun ; empty ; cyclind1 ], 
+    [ erk12 ; empty ; cyclind1 ], 
+    [ akt ; empty ; cyclind1 ], 
+    [ erbb1 ; (e , p) ; erbb1 ], 
+    [ s ; (e , p) ; erbb1 ], 
+    [ cjun ; (e , p) ; erbb1 ], 
+    [ erbb3 ; (e , p) ; erbb1 ], 
+    [ erbb2 ; (e , p , t) ; erbb2 ], 
+    [ s ; (e , p , t) ; erbb2 ], 
+    [ erbb3 ; (e , p) ; erbb3 ], 
+    [ s ; (e , p) ; erbb3 ], 
+    [ rps6 ; (e , p) ; erbb3 ], 
+    [ erk12 ; empty ; erk12 ], 
+    [ craf ; empty ; erk12 ], 
+    [ erbb1 ; empty ; erk12 ], 
+    [ foxo13a ; akt ; foxo13a ], 
+    [ gsk3ab ; empty ; gsk3ab ], 
+    [ p53 ; empty ; gsk3ab ], 
+    [ nfkb ; empty ; nfkb ], 
+    [ p38 ; empty ; p38 ], 
+    [ akt ; empty ; p38 ], 
+    [ p53 ; empty ; p53 ], 
+    [ rb ; empty ; p53 ], 
+    [ p38 ; empty ; p53 ], 
+    [ cyclinb1 ; empty ; p53 ], 
+    [ p70s6k ; (pras , tsc2) ; p70s6k ], 
+    [ erk12 ; (pras , tsc2) ; p70s6k ], 
+    [ pras ; akt ; pras ], 
+    [ cjun ; akt ; pras ], 
+    [ pten ; gsk3ab ; pten ], 
+    [ craf ; gsk3ab ; pten ], 
+    [ rb ; cyclind1 ; rb ], 
+    [ p53 ; cyclind1 ; rb ], 
+    [ rps6 ; empty ; rps6 ], 
+    [ p70s6k ; empty ; rps6 ], 
+    [ tsc2 ; (erk12 , akt , gsk3ab) ; tsc2 ], 
+    [ rb ; (erk12 , akt , gsk3ab) ; tsc2 ] .
+
+endm
+
+eof 
+
+--- -----------------------------
+--- Steady state and using drugs 
+--- -----------------------------
+
+--- 0. Empty 
+umaudemc check HCC1954-ext "init(  (rec 'X . ( { s } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init(  (rec 'X . ( { s } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check HCC1954-ext "init(  (rec 'X . ( { (e, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init(  (rec 'X . ( { (e, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (p, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (p, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check HCC1954-ext "init(  (rec 'X . ( { (t, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init(  (rec 'X . ( { (t, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (e, p, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (e, p, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (e, t, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (e, t, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (p, t, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (p, t, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (e, p, t, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check HCC1954-ext "init( (rec 'X . ( { (e, p, t, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 

@@ -1,0 +1,93 @@
+--- Case Study BT474 long-term experiments. 
+
+load ../semantics .
+mod MySystem is
+ inc SEMANTICS .
+
+ ops 
+ akt bax cjun craf cyclcind1 cyclinb1 cyclind1 e erbb1 erbb2 erbb3 
+ erk12 foxo13a gsk3ab nfkb nfkb  p p38 p53 p70s6k pras pten rb rps6 
+ s t tsc2 : -> Entity [ctor] .
+
+  eq reactions = 
+   [ akt  ; pten  ; akt ], 
+   [ erbb2 ; pten  ; akt ], 
+   [ erbb1 ; pten  ; akt ], 
+   [ erbb3 ; pten  ; akt ], 
+   [ bax  ; empty   ; bax ], 
+   [ cjun ; gsk3ab  ; cjun ], 
+   [ craf  ; erk12  ; craf ], 
+   [ erbb1 ; erk12  ; craf ], 
+   [ erbb2 ; erk12  ; craf ], 
+   [ cyclinb1 ;  p53 ; cyclinb1 ], 
+   [ erbb1 ;  p53 ; cyclinb1 ], 
+   [ erbb3 ;  p53 ; cyclinb1 ], 
+   [ cyclind1 ;  gsk3ab  ; cyclind1 ], 
+   [ erk12 ;  gsk3ab  ; cyclind1 ], 
+   [ akt ;  gsk3ab  ; cyclind1 ], 
+   [ rps6 ;  gsk3ab  ; cyclind1 ], 
+   [ erbb1 ; (e , p) ; erbb1 ], 
+   [ s ; (e , p) ; erbb1 ], 
+   [ erbb2 ; (e , p , t) ; erbb2 ], 
+   [ s ; (e , p , t) ; erbb2 ], 
+   [ erbb3 ; (e , p , pten) ; erbb3 ], 
+   [ s ; (e , p , pten) ; erbb3 ], 
+   [ rps6 ; (e , p , pten) ; erbb3 ], 
+   [ erk12 ; empty   ; erk12 ], 
+   [ craf ; empty   ; erk12 ], 
+   [ foxo13a ; akt ;  foxo13a ], 
+   [ gsk3ab ; empty ;  gsk3ab ], 
+   [ p53 ; empty ; gsk3ab ], 
+   [ cyclcind1 ; empty ; gsk3ab ], 
+   [ nfkb ; empty   ; nfkb ], 
+   [ p38 ; empty  ;  p38 ], 
+   [ akt ; empty  ;  p38 ], 
+   [ p53 ; empty  ;  p53 ], 
+   [ s ; empty  ;  p53 ], 
+   [ rb ; empty ;  p53 ], 
+   [ p38 ; empty ;  p53 ], 
+   [ pten ; empty ;  p53 ], 
+   [ cyclinb1 ; empty   ;  p53 ], 
+   [ p70s6k ; (nfkb  , pras , tsc2) ;  p70s6k ], 
+   [ erk12 ; (nfkb   , pras , tsc2) ;  p70s6k ], 
+   [ pras ; akt ; pras ], 
+   [ pten ; gsk3ab ; pten ], 
+   [ rb  ;  cyclind1 ;  rb ], 
+   [ nfkb  ;  cyclind1 ;  rb ], 
+   [ rps6 ; empty   ; rps6 ], 
+   [ p70s6k ; empty   ; rps6 ], 
+   [ tsc2 ; (erk12 , akt , gsk3ab) ;  tsc2 ] .
+
+
+endm
+
+eof 
+
+--- -----------------------------
+--- Steady state and using drugs 
+--- -----------------------------
+
+--- 0. Empty 
+umaudemc check BT474-ext "init(  (rec 'X . ( { s } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init(  (rec 'X . ( { s } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check BT474-ext "init(  (rec 'X . ( { (e, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init(  (rec 'X . ( { (e, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check BT474-ext "init( (rec 'X . ( { (p, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init( (rec 'X . ( { (p, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check BT474-ext "init(  (rec 'X . ( { (t, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init(  (rec 'X . ( { (t, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check BT474-ext "init( (rec 'X . ( { (e, p, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init( (rec 'X . ( { (e, p, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check BT474-ext "init( (rec 'X . ( { (e, t, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init( (rec 'X . ( { (e, t, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check BT474-ext "init( (rec 'X . ( { (p, t, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init( (rec 'X . ( { (p, t, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
+
+umaudemc check BT474-ext "init( (rec 'X . ( { (e, p, t, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
+umaudemc check BT474-ext "init( (rec 'X . ( { (e, p, t, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 

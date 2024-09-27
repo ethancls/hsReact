@@ -1,0 +1,86 @@
+--- Case study SKBR3 short-term experiments 
+
+load ../semantics .
+mod MySystem is
+ inc SEMANTICS .
+ ops akt bax cjun craf cyclinb1 cyclind1 cyclinD1 erbb1 erbb2 erbb3 erlotinib
+     fox01-3a gsk3a-b gska-b nfkb p38 p53 p70s6k pertuzumab pras pten rb rps6 stimulus
+     trastuzumab tsc2 mtor pdk1 e t p egf plcg hrg erk12 mek12 pkca 
+     pkcg : -> Entity [ctor] .
+
+  eq reactions = 
+   [ akt ;  empty ;  akt ],
+   [ erbb3 ;  empty ;  akt ],
+   [ mtor ;  empty ;  akt ],
+   [ pdk1 ;  empty ;  akt ],
+   [ erbb1 ; (e, p)  ;  erbb1 ],
+   [ egf ; (e, p)  ;  erbb1 ],
+   [ plcg ; (e, p)  ;  erbb1 ],
+   [ erbb2 ;  (e, t, p)  ; erbb2 ],
+   [ erbb3 ;  (e, p)  ; erbb3 ],
+   [ hrg ;  (e, p)  ; erbb3 ],
+   [ erk12 ;  empty ;  erk12 ],
+   [ erbb3 ;  empty ;  erk12 ],
+   [ mek12 ;  empty ;  erk12 ],
+   [ pdk1 ;  empty ;  erk12 ],
+   [ mek12 ;  empty ;  mek12 ],
+   [ erbb1 ;  empty ;  mek12 ],
+   [ erbb2 ;  empty ;  mek12 ],
+   [ erbb3 ;  empty ;  mek12 ],
+   [ mtor ;  empty ;  mtor ],
+   [ akt ;  empty ;  mtor ],
+   [ p70s6k ;  empty ;  p70s6k ],
+   [ akt ;  empty ;  p70s6k ],
+   [ mtor ;  empty ;  p70s6k ],
+   [ erk12 ;  empty ;  p70s6k ],
+   [ pdk1 ;  empty ;  pdk1 ],
+   [ erbb1 ;  empty ;  pdk1 ],
+   [ erbb2 ;  empty ;  pdk1 ],
+   [ erbb3 ;  empty ;  pdk1 ],
+   [ pkca ;  empty ;  pkca ],
+   [ pkcg ;  empty ;  pkca ],
+   [ pkcg ;  empty ;  pkcg ],
+   [ erbb1 ;  empty ;  pkcg ],
+   [ erbb2 ;  empty ;  pkcg ],
+   [ erbb3 ;  empty ;  pkcg ] .
+
+endm
+
+eof 
+
+--- -----------------------------
+--- Steady state and using drugs 
+--- -----------------------------
+
+--- 0. Using only hrg/egf
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, p) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, p) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, p) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e , p) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e , p) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e , p) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e, t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e, t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e, t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, p, t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, p, t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, p, t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
+
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e, p ,t) } . 'X  )" "E <> (isSteady /\ akt)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e, p ,t) } . 'X  )" "E <> (isSteady /\ erk12)" 
+umaudemc check SKBR3 "init( rec 'X . { (hrg, egf, e, p ,t) } . 'X  )" "E <> (isSteady /\ p70s6k)" 
