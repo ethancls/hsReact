@@ -2,7 +2,7 @@
 
 --    *********************** IMPORTS ***********************
 import Control.Monad (when)
-import Data.List (nub)
+import Data.List (intercalate, nub)
 
 --    *********************** TYPES ***********************
 type Entites = String
@@ -53,6 +53,7 @@ verifSequenceEach :: [Sequence] -> [Reaction] -> [[Entites]]
 verifSequenceEach sequences reactions =
     map (`appliquerReactionsUnique` reactions) sequences
 
+--    *********************** FONCTIONS ***********************
 procRec :: Generateur -> [Reaction] -> [Sequence]
 procRec gLst reactions = processusRec [] gLst reactions
   where
@@ -76,16 +77,6 @@ appliquerReactionsUnique sequence reactions = foldl appliquerReactionsPourEntite
       where
         produitsSiActive r = if verifReac [entite] r then produits r else []
     ajouterUnique acc x = if x `elem` acc then acc else acc ++ [x]
-
-genererTousCas :: Generateur -> [Reaction] -> Integer -> IO ()
-genererTousCas generateur reactions profondeur = genererTousCasAux generateur reactions profondeur 0 [[]]
-  where
-    genererTousCasAux generateur reactions profondeur currentDepth previousRes =
-        when (currentDepth < profondeur) $ do
-            print previousRes
-            let currentResTemp = verifSequenceEach previousRes reactions
-            let currentRes = [g : res | res <- currentResTemp, g <- generateur]
-            genererTousCasAux generateur reactions profondeur (currentDepth + 1) currentRes
 
 --    *********************** FONCTIONS DE CHARGEMENT ***********************
 -- Fonction pour découper une chaîne en fonction d'un séparateur
@@ -129,6 +120,55 @@ chargeAfficherGenerateur chemin = do
     print generateur
     putStrLn "\n"
 
+--    *********************** AFFICHAGE DU PROCESSUS ***********************
+genererTousCasAff :: Generateur -> [Reaction] -> Integer -> IO ()
+genererTousCasAff generateur reactions profondeur = genererTousCasAffAux generateur reactions profondeur 0 [[]]
+  where
+    genererTousCasAffAux generateur reactions profondeur currentDepth previousRes =
+        when (currentDepth < profondeur) $ do
+            print previousRes
+            let currentResTemp = verifSequenceEach previousRes reactions
+            let currentRes = [g : res | res <- currentResTemp, g <- generateur]
+            genererTousCasAffAux generateur reactions profondeur (currentDepth + 1) currentRes
+
+-- Fonction pour générer l'arbre avec toutes les possibilités
+processusRecNAire :: Sequence -> [Reaction] -> Generateur -> Int -> [Sequence] -> Arbre (Sequence, Sequence)
+processusRecNAire env reactions [] _ _ = Feuille (env, env)
+processusRecNAire env reactions generateur depth history
+    | depth == 0 = Feuille (env, env)
+    | otherwise =
+        -- Appliquer les réactions à l'environnement actuel
+        let envReagit = appliquerReactionsUnique env reactions
+            newHistory = env : history
+            -- Créer les sous-arbres seulement si la nouvelle séquence n'a pas déjà été traitée
+            sousArbres =
+                [ processusRecNAire (appliquerReactionsUnique (envReagit ++ [e]) reactions) reactions generateur (depth - 1) newHistory
+                | e <- generateur
+                , notElem (envReagit ++ [e]) newHistory
+                ]
+         in Noeud (env, envReagit) sousArbres
+
+-- Fonction pour afficher l'arbre de manière récursive
+afficheArbre :: Sequence -> Arbre (Sequence, Sequence) -> Generateur -> [Reaction] -> IO ()
+afficheArbre _ (Feuille _) _ _ = return () -- Ne rien afficher pour les feuilles
+afficheArbre input (Noeud (env, output) enfants) (context : generateur) reactions = do
+    -- Construire la liste dynamique du processus rec X. (a.X + b.X + c.X + ...)
+    let processusStr = "rec X. (" ++ intercalate " + " (map (++ ".X") (context : generateur)) ++ ")"
+    -- Afficher la ligne du processus
+    putStrLn $ "Input: " ++ show env ++ " , proc: " ++ processusStr ++ ", context: " ++ context ++ ", output: " ++ show output
+    -- Afficher les sous-arbres enfants avec l'environnement mis à jour
+    case enfants of
+        [] -> return () -- Handle the case where enfants is an empty list
+        _ -> mapM_ (\enfant -> afficheArbre output enfant generateur reactions) enfants
+
+-- Fonction pour imprimer l'arbre entier de manière récursive
+printArbreComplet :: (Show a) => Arbre a -> Int -> IO ()
+printArbreComplet (Feuille val) indent = putStrLn (replicate indent '-' ++ " Feuille: " ++ show val)
+printArbreComplet (Noeud val enfants) indent = do
+    putStrLn (replicate indent '-' ++ " Noeud: " ++ show val)
+    putStrLn (replicate (indent + 2) '-' ++ " Enfants: ")
+    mapM_ (\enfant -> printArbreComplet enfant (indent + 4)) enfants
+
 --    *********************** MAIN ***********************
 main :: IO ()
 main = do
@@ -137,8 +177,11 @@ main = do
     let profondeur = 5
     generateur <- chargerGenerateur "generateur.txt"
     reactions <- chargerReactions "reactions.txt"
+    let arbre = processusRecNAire [] reactions generateur (fromIntegral profondeur) []
     putStrLn "\n                    ------- RESULT (LISTS) -------\n"
-    genererTousCas generateur reactions profondeur
+    genererTousCasAff generateur reactions profondeur
+    putStrLn "\n                    ------- RESULT (Arbre) -------\n"
+    afficheArbre [] arbre generateur reactions
     putStrLn "\n\n"
 
 --    *********************** TESTS ***********************
@@ -151,7 +194,7 @@ main = do
 -- notreNub (cycle [1,2,3]) --> [1,2,3]
 -- appliquerReactionsUnique ["a","c"] reactionTest1 --> ["c","d"]
 -- appliquerReactionsUnique ["b"] reactionTest1 --> []
--- genererTousCas generateurTest reactionTest1 profondeur
+-- genererTousCasAff generateurTest reactionTest1 profondeur
 -- chargeAfficherReactions "reactions.txt"
 -- chargeAfficherGenerateur "generateur.txt"
 
