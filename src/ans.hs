@@ -1,7 +1,7 @@
 
 {-
 
---   *********************** SYSTÈME DE RÉACTION ***********************
+    ******************* SYSTÈME DE RÉACTION ******************
 
 \$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
 \$ D.PALAHIN 12106973 dmytro.palahin@edu.univ-paris13.fr
@@ -10,9 +10,7 @@
 
 --    *********************** IMPORTS ***********************
 
-import Control.Monad (when)
-import Data.List (intercalate, nub, sort)
-import Data.List.NonEmpty (nubBy)
+import Data.List (nub)
 
 --    *********************** TYPES ***********************
 
@@ -46,7 +44,7 @@ verifSequenceEach :: [Sequence] -> [Reaction] -> [[Entites]]
 verifSequenceEach sequences reactions =
     map (`appliquerReactionsUnique` reactions) sequences
 
---    *********************** FONCTIONS ***********************
+--    *********************** FONCTIONS PROCESSUS SIMPLE ***********************
 
 procRec :: Generateur -> [Reaction] -> [Sequence]
 procRec gLst reactions = processusRec [] gLst reactions
@@ -72,7 +70,49 @@ appliquerReactionsUnique sequence reactions = foldl appliquerReactionsPourEntite
         produitsSiActive r = if verifReac [entite] r then produits r else []
     ajouterUnique acc x = if x `elem` acc then acc else acc ++ [x]
 
---    *********************** FONCTIONS DE CHARGEMENT ***********************
+--    *********************** PROCESSUS REC ***********************
+
+-- Fonction qui génère les séquences possibles via des listes
+afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO [[Sequence]]
+afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 0 [[]] []
+    where
+        afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes acc
+                | currentDepth >= profondeur = return acc
+                | otherwise = do
+                        putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
+                        putStrLn $ "   > Input  :" ++ show previousRes
+                        let currentResTemp = verifSequenceEach previousRes reactions -- On applique les réactions sur les séquences
+                        putStrLn $ "   > Output :" ++ show currentResTemp
+                        let currentRes = [g : res | res <- currentResTemp, g <- generateur]
+                        putStrLn $ "   > Leafs  :" ++ show currentRes
+                        let newAcc = if removeDuplicates acc currentRes == [] then acc else acc ++ [removeDuplicates acc currentRes] -- On ajoute les nouvelles séquences dans le acc en vérifiant les doublons
+                        putStrLn $ "   > Acc    :" ++ show newAcc
+                        putStrLn "\n"
+                        if acc == newAcc
+                            then do
+                                putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
+                                return acc
+                            else afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes newAcc
+
+-- Fonction pour éliminer les doublons dans acc
+removeDuplicates :: (Eq a) => [[[a]]] -> [[a]] -> [[a]]
+removeDuplicates acc = filter (`notElem` concat acc)
+
+-- Fonction pour vérifier si une entité est présente
+verifEntite :: Entites -> [[[Entites]]] -> Bool
+verifEntite entite = any (any (elem entite))
+
+--    ************************** ARBRE ****************************
+
+-- Fonction pour imprimer l'arbre entier de manière récursive
+printArbreComplet :: (Show a) => Arbre a -> Int -> IO ()
+printArbreComplet (Feuille val) indent = putStrLn (replicate indent '-' ++ " Feuille: " ++ show val)
+printArbreComplet (Noeud val enfants) indent = do
+    putStrLn (replicate indent '-' ++ " Noeud: " ++ show val)
+    putStrLn (replicate (indent + 2) '-' ++ " Enfants: ")
+    mapM_ (\enfant -> printArbreComplet enfant (indent + 4)) enfants
+
+--    *********************** FONCTIONS DE CHARGEMENT FICHIERS ***********************
 
 -- Fonction pour découper une chaîne en fonction d'un séparateur
 decouperPar :: Char -> String -> [String]
@@ -122,80 +162,6 @@ chargeAfficherEntites chemin = do
     print generateur
     putStrLn "\n"
 
---    *********************** PROCESSUS ***********************
-
-afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO [[Sequence]]
-afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 0 [[]] []
-    where
-        afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes acc
-                | currentDepth >= profondeur = return acc
-                | otherwise = do
-                        putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
-                        putStrLn $ "   > Input  :" ++ show previousRes
-                        let currentResTemp = verifSequenceEach previousRes reactions
-                        putStrLn $ "   > Output :" ++ show currentResTemp
-                        let currentRes = [g : res | res <- currentResTemp, g <- generateur]
-                        putStrLn $ "   > Leafs  :" ++ show currentRes
-                        let newAcc = if removeDuplicates acc currentRes == [] then acc else acc ++ [removeDuplicates acc currentRes]
-                        putStrLn $ "   > Acc    :" ++ show newAcc
-                        putStrLn "\n"
-                        if acc == newAcc
-                            then do
-                                putStrLn ("####### Stabilisation du RS à la profondeur : " ++ show currentDepth)
-                                return acc
-                            else afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes newAcc
-
--- Fonction pour éliminer les doublons à tous les niveaux de profondeur
-removeDuplicates :: (Eq a) => [[[a]]] -> [[a]] -> [[a]]
-removeDuplicates acc = filter (`notElem` concat acc)
-
-verifEntite :: Entites -> [[[Entites]]] -> Bool
-verifEntite entite = any (any (elem entite))
-
-afficherTousCasArbre :: Generateur -> [Reaction] -> Integer -> IO (Arbre (Sequence, [Sequence]))
-afficherTousCasArbre generateur reactions profondeur = afficherTousCasArbreAux generateur reactions profondeur 0 [] []
-    where
-        afficherTousCasArbreAux :: Generateur -> [Reaction] -> Integer -> Integer -> Sequence -> [Sequence] -> IO (Arbre (Sequence, [Sequence]))
-        afficherTousCasArbreAux generateur reactions profondeur currentDepth previousRes acc
-            | currentDepth >= profondeur = return $ Feuille (previousRes, acc)
-            | otherwise = do
-                putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
-                putStrLn $ "   > Input :" ++ show previousRes
-                let currentResTemp = verifSequenceEach [previousRes] reactions -- This should return [Sequence], not [[Sequence]]
-                putStrLn $ "   > Output :" ++ show currentResTemp
-                let currentRes = [g : res | res <- currentResTemp, g <- generateur] -- Ensure this doesn't over-nest
-                putStrLn $ "   > Leafs :" ++ show currentRes
-                let newAcc = if concat currentResTemp `elem` acc then acc else acc ++ currentRes
-                putStrLn $ "   > Acc :" ++ show newAcc
-                putStrLn "\n"
-                sousArbres <- mapM (\res -> afficherTousCasArbreAux generateur reactions profondeur (currentDepth + 1) res newAcc) currentRes
-                return $ Noeud (previousRes, currentRes) sousArbres
-
-
---    ************************** ARBRE ****************************
-
--- Fonction pour générer l'arbre avec toutes les possibilités
-processusRecNAire :: Sequence -> [Reaction] -> Generateur -> Int -> [Sequence] -> Arbre (Sequence, Sequence)
-processusRecNAire env reactions generateur depth history
-    | depth == 0 = Feuille (env, env)
-    | otherwise =
-        let envReagit = appliquerReactionsUnique env reactions
-            newHistory = env : history
-            sousArbres =
-                [ processusRecNAire (appliquerReactionsUnique (envReagit ++ [e]) reactions) reactions generateur (depth - 1) newHistory
-                | e <- generateur
-                , notElem (envReagit ++ [e]) newHistory
-                ]
-         in Noeud (env, envReagit) sousArbres
-
--- Fonction pour imprimer l'arbre entier de manière récursive
-printArbreComplet :: (Show a) => Arbre a -> Int -> IO ()
-printArbreComplet (Feuille val) indent = putStrLn (replicate indent '-' ++ " Feuille: " ++ show val)
-printArbreComplet (Noeud val enfants) indent = do
-    putStrLn (replicate indent '-' ++ " Noeud: " ++ show val)
-    putStrLn (replicate (indent + 2) '-' ++ " Enfants: ")
-    mapM_ (\enfant -> printArbreComplet enfant (indent + 4)) enfants
-
 --    *********************** MAIN ***********************
 main :: IO ()
 main = do
@@ -208,7 +174,6 @@ main = do
     generateur <- chargerGenerateur "generateur.txt"
     reactions <- chargerReactions "reactions.txt"
     entites <- chargerGenerateur "entites.txt"
-    let arbre = processusRecNAire [] reactions generateur (fromIntegral profondeur) []
     putStrLn "\n                 ------- CREATION DE L'ARBRE -------\n"
     putStrLn ("PROFONDEUR MAX : " ++ show profondeur ++ "\n")
     result <- afficherTousCasLst generateur reactions profondeur
