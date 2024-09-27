@@ -96,9 +96,6 @@ reactionTest1 =
     , Reaction ["c"] ["a"] ["d"] -- Si "c" est présent sans "a", "d" est produit
     ]
 
-generateurTest :: Generateur
-generateurTest = ["a", "b"]
-
 profondeur :: Integer
 profondeur = 5
 
