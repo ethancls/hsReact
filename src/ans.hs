@@ -69,7 +69,7 @@ reacChaine g reactions = processusRec [] g reactions
 --    *********************** PROCESSUS REC ***********************
 
 -- Fonction qui génère les séquences possibles via des listes
-afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO [[Sequence]]
+{-afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO [[Sequence]]
 afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 1 [[]] []
   where
     afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes acc
@@ -80,6 +80,27 @@ afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux gener
           let currentResTemp = verifSysteme previousRes reactions -- On applique les réactions sur les séquences
           putStrLn $ "   > Output :" ++ show currentResTemp
           let currentRes = [g : res | res <- currentResTemp, g <- generateur]
+          putStrLn $ "   > Leafs  :" ++ show currentRes
+          let newAcc = if supDoublons acc currentRes == [] then acc else acc ++ [supDoublons acc currentRes] -- On ajoute les nouvelles séquences dans le acc en vérifiant les doublons
+          putStrLn $ "   > Res    :" ++ show newAcc
+          putStrLn "\n"
+          if acc == newAcc
+            then do
+              putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
+              return acc
+            else afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes newAcc-}
+
+afficherTousCasLst :: [Generateur] -> [Reaction] -> Integer -> IO [[Sequence]]
+afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 1 [[]] []
+  where
+    afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes acc
+      | currentDepth >= profondeur = return acc
+      | otherwise = do
+          putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
+          putStrLn $ "   > Input  :" ++ show previousRes
+          let currentResTemp = verifSysteme previousRes reactions -- On applique les réactions sur les séquences
+          putStrLn $ "   > Output :" ++ show currentResTemp
+          let currentRes = [g ++ res | res <- currentResTemp, g <- generateur]
           putStrLn $ "   > Leafs  :" ++ show currentRes
           let newAcc = if supDoublons acc currentRes == [] then acc else acc ++ [supDoublons acc currentRes] -- On ajoute les nouvelles séquences dans le acc en vérifiant les doublons
           putStrLn $ "   > Res    :" ++ show newAcc
@@ -128,16 +149,16 @@ afficherListeEnArbre sequences = do
 --    *********************** FONCTIONS DE CHARGEMENT FICHIERS ***********************
 
 -- Fonction pour découper une chaîne en fonction d'un séparateur
-decouperPar :: Char -> String -> [String]
-decouperPar separateur = foldr (\c l -> if c == separateur then [] : l else (c : head l) : tail l) [[]]
+split :: Char -> String -> [String]
+split separateur = foldr (\c l -> if c == separateur then [] : l else (c : head l) : tail l) [[]]
 
--- Fonction pour parser une ligne de réaction du fichier
+-- Fonction pour charger les réactions depuis un fichier
 parserReaction :: String -> Reaction
 parserReaction str =
-  let parties = decouperPar ';' str
-      reactifs = decouperPar ',' (head parties)
-      inhibiteurs = decouperPar ',' (parties !! 1)
-      produits = decouperPar ',' (parties !! 2)
+  let parties = split ';' str
+      reactifs = split ',' (head parties)
+      inhibiteurs = split ',' (parties !! 1)
+      produits = split ',' (parties !! 2)
    in Reaction reactifs inhibiteurs produits
 
 -- Fonction pour charger les réactions depuis un fichier
@@ -146,13 +167,17 @@ chargerReactions chemin = do
   contenu <- readFile chemin
   return $ map parserReaction (lines contenu)
 
-parserGenerateur :: String -> Generateur
-parserGenerateur = decouperPar ','
-
-chargerGenerateur :: FilePath -> IO Generateur
+-- Fonction pour charger le générateur depuis un fichier
+chargerGenerateur :: FilePath -> IO [Generateur]
 chargerGenerateur chemin = do
   contenu <- readFile chemin
-  return $ parserGenerateur (head (lines contenu))
+  return $ map (split ',') (split ';' contenu)
+
+-- Fonction pour charger les entités à vérifier depuis un fichier
+chargerEntites :: FilePath -> IO [Entites]
+chargerEntites chemin = do
+  contenu <- readFile chemin
+  return $ split ',' (head (lines contenu))
 
 --   *********************** PROPOSITIONS ***********************
 
@@ -162,13 +187,13 @@ main = do
   putStrLn "\n    [CHARGEMENT...]\n"
   let profondeur = 10
   putStrLn "\n                    ------- GENERATEUR -------\n"
-  generateur <- chargerGenerateur "../case-studies/generateur.txt"
+  generateur <- chargerGenerateur "./data/generateur.txt"
   print generateur
   putStrLn "\n                    ------- REACTIONS -------\n"
-  reactions <- chargerReactions "/case-studies/reactions.txt"
+  reactions <- chargerReactions "./data/BT474.txt"
   mapM_ print reactions
   putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
-  entites <- chargerGenerateur "/case-studies/entites.txt"
+  entites <- chargerEntites "./data/entites.txt"
   print entites
   putStrLn "\n    [TRAITEMENT...]\n"
   putStrLn "\n                 ------- CREATION DE L'ARBRE -------\n"

@@ -1,1 +1,1 @@
-pras,erbb2,erbb3,p70s6k,tsc2,erk12,akt,gsk3ab,pten,nfkb,rb,rps6,cyclind1,p53,s,craf,foxo13a,cyclinb1,p38,rb,pten,p70s6k,erk12,pras,pten,rb,nfkb,rps6,p70s6k,tsc2
+a,c,d
