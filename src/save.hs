@@ -1,3 +1,4 @@
+import Data.List (nub)
 {-
 
 \**** REACTION SYSTEMS ****
@@ -37,6 +38,9 @@ verifSequence sequences reactions =
     | sequence <- sequences
     ]
 
+applyReactions :: [Reaction] -> Sequence -> Sequence
+applyReactions reactions env = nub $ concat [produits r | r <- reactions, verifReac env r]
+
 -- Verification de présence d'une entité
 verifEntite :: Entites -> [Sequence] -> [Reaction] -> Bool
 verifEntite entite sequences reactions =
@@ -71,6 +75,8 @@ alphaSystem =
     [ Reaction ["egf"] ["e", "p"] ["erbb1"]
     , Reaction ["egf"] [] ["erk12"]
     , Reaction ["erk12"] [] ["p70s6k"]
+    , Reaction ["a"] ["b"] ["c"]
+    , Reaction ["c"] ["a"] ["d"]
     ]
 
 -- Séquences de tests
@@ -79,6 +85,6 @@ betaSequence :: [Sequence]
 betaSequence =
     [ ["egf"]
     , ["egf", "e"]
-    , ["erk12"]
-    , ["p"]
+    , ["erk12", "egf"]
+    , ["a", "c"]
     ]
