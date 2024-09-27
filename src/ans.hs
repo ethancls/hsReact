@@ -187,45 +187,143 @@ chargerEntites chemin = do
   contenu <- readFile chemin
   return $ split ',' (head (lines contenu))
 
---   *********************** PROPOSITIONS ***********************
+--   *********************** PhiS ***********************
+
+-- Expression Phi
+data Phi
+  = Var Entites
+  | Not Phi
+  | And Phi Phi
+  | Or Phi Phi
+  deriving (Show, Eq)
+
+-- Evaluer une expression Phi
+eval :: Phi -> (Entites -> Bool) -> Bool
+eval (Var x) f = f x
+eval (Not e) f = not (eval e f)
+eval (And e1 e2) f = eval e1 f && eval e2 f
+eval (Or e1 e2) f = eval e1 f || eval e2 f
+
+-- Tester une proposition sur une séquence
+testProp :: Phi -> Sequence -> Bool
+testProp prop sequence = eval prop (`elem` sequence)
+
+-- Fonction pour parser une chaîne en une Phi
+parsePhi :: String -> Phi
+parsePhi str = 
+  let tokens = words str
+   in parseTokens tokens
+
+-- Fonction auxiliaire pour parser les tokens en une Phi
+parseTokens :: [String] -> Phi
+parseTokens [x] = Var x
+parseTokens ("!":xs) = Not (parseTokens xs)
+parseTokens (x:"^":xs) = And (Var x) (parseTokens xs)
+parseTokens (x:"v":xs) = Or (Var x) (parseTokens xs)
+parseTokens _ = error "Invalid format"
+-- Fonction pour vérifier si une entité est éventuellement produite dans une séquence
+eventually :: Phi -> [[Sequence]] -> Bool
+eventually phi = any (any (testProp phi))
+
+-- Fonction pour vérifier si une entité est toujours produite dans une séquence
+always :: Phi -> [[Sequence]] -> Bool
+always phi = all (all (testProp phi))
+
+-- Fonction pour vérifier si une entité est produite jusqu'à ce qu'une autre entité soit produite
+untilP :: Phi -> Phi -> [[Sequence]] -> Bool
+untilP phi1 phi2 sequences = 
+  let hold = eventually phi1 sequences
+      remain = eventually phi2 sequences
+   in hold && remain
 
 --    *********************** MAIN ***********************
-main :: IO ()
-main = do
+hsreact :: IO ()
+hsreact = do
+
+  putStrLn ("\n                  ██╗  ██╗███████╗██████╗ ███████╗ █████╗  ██████╗████████╗\n" ++
+            "                  ██║  ██║██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝╚══██╔══╝\n" ++
+            "                  ███████║███████╗██████╔╝█████╗  ███████║██║        ██║   \n" ++
+            "                  ██╔══██║╚════██║██╔══██╗██╔══╝  ██╔══██║██║        ██║   \n" ++
+            "                  ██║  ██║███████║██║  ██║███████╗██║  ██║╚██████╗   ██║   \n" ++
+            "                  ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝   ╚═╝   \n" ++
+            "\n > SUP GALILEE - UNIVERSITE PARIS 13 - G4SI2 - PROJET SYSTEME DE REACTION\n" ++
+            "   > ETHAN NICOLAS & DMYTRO PALAHIN\n" ++
+            "    > 2024\n")
   putStrLn "\n    [CHARGEMENT...]\n"
-  putStrLn "\n                    ------- GENERATEUR -------\n"
-  generateur <- chargerGenerateur "./data/generateur.txt"
-  print generateur
-  putStrLn "\n                    ------- REACTIONS -------\n"
-  reactions <- chargerReactions "./data/HCC1954-ext.txt"
-  mapM_ print reactions
-  putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
-  entites <- chargerEntites "./data/entites.txt"
-  print entites
+
+  putStrLn "Utiliser les fichiers de test par défaut ? (y/n)"
+  reponse <- getLine
+
+  (generateur, reactions, entites) <- 
+    if reponse == "n"
+      then do
+        putStrLn "Entrez le chemin du fichier de générateur :"
+        cheminGenerateur <- getLine
+        putStrLn "Entrez le chemin du fichier de réactions :"
+        cheminReactions <- getLine
+        putStrLn "Entrez le chemin du fichier d'entités à vérifier :"
+        cheminEntites <- getLine
+        generateur <- chargerGenerateur cheminGenerateur
+        reactions <- chargerReactions cheminReactions
+        entites <- chargerEntites cheminEntites
+        putStrLn "Fichiers chargés avec succès !"
+        return (generateur, reactions, entites)
+      else do
+        generateur <- chargerGenerateur "./data/generateur.txt"
+        reactions <- chargerReactions "./data/HCC1954.txt"
+        entites <- chargerEntites "./data/entites.txt"
+        putStrLn "Fichiers chargés avec succès !"
+        return (generateur, reactions, entites)
+
+  
+  putStrLn "Afficher les donnees chargees ? (y/n)"
+  reponse <- getLine
+  if reponse == "y"
+    then do
+      putStrLn "\n                    ------- GENERATEUR -------\n"
+      print generateur
+      putStrLn "\n                    ------- REACTIONS -------\n"
+      mapM_ print reactions
+      putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
+      print entites
+    else do
+      return ()
+
   putStrLn "\n    [TRAITEMENT...]\n"
-  putStrLn "\n                 ------- CREATION DE L'ARBRE -------\n"
+
+  putStrLn "\n                ------- CREATION DE L'ARBRE -------\n"
+
   result <- afficherTousCasLst generateur reactions
-  putStrLn "\n                    ------- RESULT (LIST) -------\n"
-  print result
-  putStrLn "\n                    ------- RESULT (ARBRE) -------\n"
-  afficherListeEnArbre result
-  putStrLn "\n                    ------- VERIFICATION ENTITE -------\n"
+
+  putStrLn "Afficher les etats ? (y/n)"
+  reponse <- getLine
+  if reponse == "y"
+    then do
+      putStrLn "\n                  ------- RESULTAT (LISTE) -------\n"
+      print result
+      putStrLn "\n                 ------- RESULTAT (ETAPES) -------\n"
+      afficherListeEnArbre result
+    else do
+      return ()
+
+  putStrLn "\n               ------- VERIFICATION ENTITE -------\n"
+
   mapM_ (\entite -> print (entite, presenceEntite entite result)) entites
+
+  putStrLn "\n                ------- VERIFICATION PHI -------\n"
+
+  let phi = "egf ^ ! erk12"
+  putStrLn $ "Proposition : " ++ show phi
+  putStrLn "Il y a au moins un etat au cours de l'execution qui verifie la proposition"
+  print $ eventually (parsePhi phi) result 
+  putStrLn "Tous les etats au cours de l'execution verifient la proposition"
+  print $ always (parsePhi phi) result
+  putStrLn "On a egf jusqu'a ce que l'entite erk12 soit produite"
+  print $ untilP (parsePhi "egf") (parsePhi "erk12") result
+  
   putStrLn "\n    [FIN DU PROGRAMME]\n"
-  putStrLn "\n"
 
 --    *********************** TESTS ***********************
-
--- verifReac ["a","c","d"] (Reaction ["a"] ["b"] ["c"]) --> True
--- verifSequence [["a"],["b"]] reactionTest1 --> [["c"],[]]
--- verifSequence [["a","c"],["b","c"],["a", ""],["b", ""]] reactionTest1 --> [["c"],["d"],["c"],[]]
--- procRec ["egf"] reactionTest2 --> [["erbb1","erk12"],["p70s6k"]]
--- notreNub (cycle [1,2,3]) --> [1,2,3]
--- appliquerReactions ["a","c"] reactionTest1 --> ["c","d"]
--- appliquerReactions ["b"] reactionTest1 --> []
--- afficherTousCasLst generateurTest reactionTest1 profondeur
--- chargeAfficherReactions "reactions.txt"
--- chargeAfficherGenerateur "generateur.txt"
 
 alphaSystem :: [Reaction]
 alphaSystem =
@@ -236,8 +334,6 @@ alphaSystem =
     Reaction ["c"] ["a"] ["d"]
   ]
 
--- Séquences de tests
-
 betaSequence :: [Sequence]
 betaSequence =
   [ ["egf"],
@@ -246,7 +342,4 @@ betaSequence =
     ["a", "c"]
   ]
 
---    *********************** CHARGEMENT ***********************
-
--- :l ./src/ans2.hs
--- main
+--  FIN DU PROGRAMME
