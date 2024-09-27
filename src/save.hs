@@ -105,3 +105,4 @@ reactionTest2 =
     , Reaction ["egf"] [] ["erk12"]
     , Reaction ["erk12"] [] ["p70s6k"]
     ]
+
