@@ -74,7 +74,7 @@ appliquerReactionsUnique sequence reactions = foldl appliquerReactionsPourEntite
 
 -- Fonction qui génère les séquences possibles via des listes
 afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO [[Sequence]]
-afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 0 [[]] []
+afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 1 [[]] []
     where
         afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes acc
                 | currentDepth >= profondeur = return acc
@@ -86,7 +86,7 @@ afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux gener
                         let currentRes = [g : res | res <- currentResTemp, g <- generateur]
                         putStrLn $ "   > Leafs  :" ++ show currentRes
                         let newAcc = if removeDuplicates acc currentRes == [] then acc else acc ++ [removeDuplicates acc currentRes] -- On ajoute les nouvelles séquences dans le acc en vérifiant les doublons
-                        putStrLn $ "   > Acc    :" ++ show newAcc
+                        putStrLn $ "   > Res    :" ++ show newAcc
                         putStrLn "\n"
                         if acc == newAcc
                             then do
@@ -108,9 +108,25 @@ verifEntite entite = any (any (elem entite))
 printArbreComplet :: (Show a) => Arbre a -> Int -> IO ()
 printArbreComplet (Feuille val) indent = putStrLn (replicate indent '-' ++ " Feuille: " ++ show val)
 printArbreComplet (Noeud val enfants) indent = do
-    putStrLn (replicate indent '-' ++ " Noeud: " ++ show val)
-    putStrLn (replicate (indent + 2) '-' ++ " Enfants: ")
-    mapM_ (\enfant -> printArbreComplet enfant (indent + 4)) enfants
+    putStrLn (replicate indent '-' ++ " ETAT_SYS [" ++ show indent ++ "] : " ++ show val)
+    mapM_ (\enfant -> printArbreComplet enfant (indent + 1)) enfants
+
+-- Fonction pour convertir la liste de séquences en arbre
+convertirEnArbre :: [[Sequence]] -> Arbre [Sequence]
+convertirEnArbre [] = Feuille []
+convertirEnArbre (x:xs) = Noeud x (map convertirEnArbre (groupByDepth xs))
+
+-- Fonction pour grouper les séquences par profondeur
+groupByDepth :: [[Sequence]] -> [[[Sequence]]]
+groupByDepth [] = []
+groupByDepth xs = let (first, rest) = span ((== head (map length xs)) . length) xs
+                  in first : groupByDepth rest
+
+-- Fonction pour afficher la liste de afficherTousCasLst sous forme d'arbre
+afficherListeEnArbre :: [[Sequence]] -> IO ()
+afficherListeEnArbre sequences = do
+    let arbre = convertirEnArbre sequences
+    printArbreComplet arbre 1
 
 --    *********************** FONCTIONS DE CHARGEMENT FICHIERS ***********************
 
@@ -133,13 +149,6 @@ chargerReactions chemin = do
     contenu <- readFile chemin
     return $ map parserReaction (lines contenu)
 
-chargeAfficherReactions :: FilePath -> IO ()
-chargeAfficherReactions chemin = do
-    reactions <- chargerReactions chemin
-    putStrLn "\n                    ------- REACTIONS -------\n"
-    mapM_ print reactions -- Afficher chaque réaction sur une nouvelle ligne
-    putStrLn "\n"
-
 parserGenerateur :: String -> Generateur
 parserGenerateur = decouperPar ','
 
@@ -148,39 +157,32 @@ chargerGenerateur chemin = do
     contenu <- readFile chemin
     return $ parserGenerateur (head (lines contenu))
 
-chargeAfficherGenerateur :: FilePath -> IO ()
-chargeAfficherGenerateur chemin = do
-    generateur <- chargerGenerateur chemin
-    putStrLn "\n                    ------- GENERATEUR -------\n"
-    print generateur
-    putStrLn "\n"
+--   *********************** PROPOSITIONS ***********************
 
-chargeAfficherEntites :: FilePath -> IO ()
-chargeAfficherEntites chemin = do
-    generateur <- chargerGenerateur chemin
-    putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
-    print generateur
-    putStrLn "\n"
+
 
 --    *********************** MAIN ***********************
 main :: IO ()
 main = do
     putStrLn "\n    [CHARGEMENT...]\n"
-    chargeAfficherReactions "reactions.txt"
-    chargeAfficherGenerateur "generateur.txt"
-    chargeAfficherEntites "entites.txt"
-    putStrLn "\n    [TRAITEMENT...]\n"
     let profondeur = 10
+    putStrLn "\n                    ------- GENERATEUR -------\n"
     generateur <- chargerGenerateur "generateur.txt"
+    print generateur
+    putStrLn "\n                    ------- REACTIONS -------\n"
     reactions <- chargerReactions "reactions.txt"
+    mapM_ print reactions
+    putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
     entites <- chargerGenerateur "entites.txt"
+    print entites
+    putStrLn "\n    [TRAITEMENT...]\n"
     putStrLn "\n                 ------- CREATION DE L'ARBRE -------\n"
     putStrLn ("PROFONDEUR MAX : " ++ show profondeur ++ "\n")
     result <- afficherTousCasLst generateur reactions profondeur
     putStrLn "\n                    ------- RESULT (LIST) -------\n"
     print result
     putStrLn "\n                    ------- RESULT (ARBRE) -------\n"
-  {-   printArbreComplet arbre 0 -}
+    afficherListeEnArbre result
     putStrLn "\n                    ------- VERIFICATION ENTITE -------\n"
     mapM_ (\entite -> print (entite, verifEntite entite result)) entites
     putStrLn "\n    [FIN DU PROGRAMME]\n"
