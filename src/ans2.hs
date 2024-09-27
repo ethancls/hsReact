@@ -121,15 +121,15 @@ chargeAfficherGenerateur chemin = do
     putStrLn "\n"
 
 --    *********************** AFFICHAGE DU PROCESSUS ***********************
-genererTousCasAff :: Generateur -> [Reaction] -> Integer -> IO ()
-genererTousCasAff generateur reactions profondeur = genererTousCasAffAux generateur reactions profondeur 0 [[]]
+afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO ()
+afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 0 [[]]
   where
-    genererTousCasAffAux generateur reactions profondeur currentDepth previousRes =
+    afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes =
         when (currentDepth < profondeur) $ do
             print previousRes
             let currentResTemp = verifSequenceEach previousRes reactions
             let currentRes = [g : res | res <- currentResTemp, g <- generateur]
-            genererTousCasAffAux generateur reactions profondeur (currentDepth + 1) currentRes
+            afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes
 
 -- Fonction pour générer l'arbre avec toutes les possibilités
 processusRecNAire :: Sequence -> [Reaction] -> Generateur -> Int -> [Sequence] -> Arbre (Sequence, Sequence)
@@ -148,19 +148,6 @@ processusRecNAire env reactions generateur depth history
                 ]
          in Noeud (env, envReagit) sousArbres
 
--- Fonction pour afficher l'arbre de manière récursive
-afficheArbre :: Sequence -> Arbre (Sequence, Sequence) -> Generateur -> [Reaction] -> IO ()
-afficheArbre _ (Feuille _) _ _ = return () -- Ne rien afficher pour les feuilles
-afficheArbre input (Noeud (env, output) enfants) (context : generateur) reactions = do
-    -- Construire la liste dynamique du processus rec X. (a.X + b.X + c.X + ...)
-    let processusStr = "rec X. (" ++ intercalate " + " (map (++ ".X") (context : generateur)) ++ ")"
-    -- Afficher la ligne du processus
-    putStrLn $ "Input: " ++ show env ++ " , proc: " ++ processusStr ++ ", context: " ++ context ++ ", output: " ++ show output
-    -- Afficher les sous-arbres enfants avec l'environnement mis à jour
-    case enfants of
-        [] -> return () -- Handle the case where enfants is an empty list
-        _ -> mapM_ (\enfant -> afficheArbre output enfant generateur reactions) enfants
-
 -- Fonction pour imprimer l'arbre entier de manière récursive
 printArbreComplet :: (Show a) => Arbre a -> Int -> IO ()
 printArbreComplet (Feuille val) indent = putStrLn (replicate indent '-' ++ " Feuille: " ++ show val)
@@ -174,14 +161,14 @@ main :: IO ()
 main = do
     chargeAfficherReactions "reactions.txt"
     chargeAfficherGenerateur "generateur.txt"
-    let profondeur = 5
+    let profondeur = 4
     generateur <- chargerGenerateur "generateur.txt"
     reactions <- chargerReactions "reactions.txt"
     let arbre = processusRecNAire [] reactions generateur (fromIntegral profondeur) []
     putStrLn "\n                    ------- RESULT (LISTS) -------\n"
-    genererTousCasAff generateur reactions profondeur
-    putStrLn "\n                    ------- RESULT (Arbre) -------\n"
-    afficheArbre [] arbre generateur reactions
+    afficherTousCasLst generateur reactions profondeur
+    putStrLn "\n                    ------- RESULT (ARBRE) -------\n"
+    printArbreComplet arbre 0
     putStrLn "\n\n"
 
 --    *********************** TESTS ***********************
@@ -194,7 +181,7 @@ main = do
 -- notreNub (cycle [1,2,3]) --> [1,2,3]
 -- appliquerReactionsUnique ["a","c"] reactionTest1 --> ["c","d"]
 -- appliquerReactionsUnique ["b"] reactionTest1 --> []
--- genererTousCasAff generateurTest reactionTest1 profondeur
+-- afficherTousCasLst generateurTest reactionTest1 profondeur
 -- chargeAfficherReactions "reactions.txt"
 -- chargeAfficherGenerateur "generateur.txt"
 
