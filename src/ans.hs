@@ -36,10 +36,19 @@ verifReac sequence reaction =
   -- et s'il n'y a aucun élément de la liste 'inhibiteurs reaction' présent dans la liste 'sequence'.
   all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
--- Vérifier si une séquence produit une réaction
+-- Fonction pour vérifier si un inhibiteur est présent dans une liste de réactifs
+containsInhibitor :: [String] -> [String] -> Bool
+containsInhibitor reactifs inhibiteurs = any (`elem` reactifs) inhibiteurs
+
+-- Fonction auxiliaire qui vérifie si une entité peut réagir, en prenant en compte toute la séquence
+verifEntite :: String -> Sequence -> [Reaction] -> Sequence
+verifEntite entite sequence reactions =
+  -- Chercher une réaction valide pour l'entité, en comparant avec toute la séquence (réactifs et inhibiteurs)
+  concat [produits r | r <- reactions, entite `elem` reactifs r, not (containsInhibitor sequence (inhibiteurs r))]
+
+-- Vérifier chaque entité dans la séquence pour voir si elle peut réagir
 verifSequence :: Sequence -> [Reaction] -> Sequence
-verifSequence sequence reactions =
-  concat [produits reaction | reaction <- reactions, verifReac sequence reaction]
+verifSequence sequence reactions = nub $ concatMap (\entite -> verifEntite entite sequence reactions) sequence
 
 -- Verifier si une liste de séquence produit une réaction
 verifSysteme :: [Sequence] -> [Reaction] -> [Sequence]
@@ -90,34 +99,32 @@ afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux gener
               return acc
             else afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes newAcc-}
 
-afficherTousCasLst :: [Generateur] -> [Reaction] -> Integer -> IO [[Sequence]]
-afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 1 [[]] []
+afficherTousCasLst :: [Generateur] -> [Reaction] -> IO [[Sequence]]
+afficherTousCasLst generateur reactions = afficherTousCasLstAux generateur reactions 1 [[]] []
   where
-    afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes acc
-      | currentDepth >= profondeur = return acc
-      | otherwise = do
-          putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
-          putStrLn $ "   > Input  :" ++ show previousRes
-          let currentResTemp = verifSysteme previousRes reactions -- On applique les réactions sur les séquences
-          putStrLn $ "   > Output :" ++ show currentResTemp
-          let currentRes = [g ++ res | res <- currentResTemp, g <- generateur]
-          putStrLn $ "   > Leafs  :" ++ show currentRes
-          let newAcc = if supDoublons acc currentRes == [] then acc else acc ++ [supDoublons acc currentRes] -- On ajoute les nouvelles séquences dans le acc en vérifiant les doublons
-          putStrLn $ "   > Res    :" ++ show newAcc
-          putStrLn "\n"
-          if acc == newAcc
-            then do
-              putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
-              return acc
-            else afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes newAcc
+    afficherTousCasLstAux generateur reactions currentDepth previousRes acc = do
+      putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
+      putStrLn $ "   > Input  :" ++ show previousRes
+      let currentResTemp = verifSysteme previousRes reactions -- On applique les réactions sur les séquences
+      putStrLn $ "   > Output :" ++ show currentResTemp
+      let currentRes = [g ++ res | res <- currentResTemp, g <- generateur]
+      putStrLn $ "   > Leafs  :" ++ show currentRes
+      let newAcc = if supDoublons acc currentRes == [] then acc else acc ++ [supDoublons acc currentRes] -- On ajoute les nouvelles séquences dans le acc en vérifiant les doublons
+      putStrLn $ "   > Res    :" ++ show newAcc
+      putStrLn "\n"
+      if acc == newAcc
+        then do
+          putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
+          return acc
+        else afficherTousCasLstAux generateur reactions (currentDepth + 1) currentRes newAcc
 
 -- Fonction pour éliminer les doublons dans acc
 supDoublons :: (Eq a) => [[[a]]] -> [[a]] -> [[a]]
 supDoublons acc = filter (`notElem` concat acc)
 
 -- Fonction pour vérifier si une entité est présente
-verifEntite :: Entites -> [[[Entites]]] -> Bool
-verifEntite entite = any (any (elem entite))
+presenceEntite :: Entites -> [[[Entites]]] -> Bool
+presenceEntite entite = any (any (elem entite))
 
 --    ************************** ARBRE ****************************
 
@@ -152,20 +159,21 @@ afficherListeEnArbre sequences = do
 split :: Char -> String -> [String]
 split separateur = foldr (\c l -> if c == separateur then [] : l else (c : head l) : tail l) [[]]
 
--- Fonction pour charger les réactions depuis un fichier
+-- Fonction pour parser une ligne de réaction du fichier
 parserReaction :: String -> Reaction
-parserReaction str =
-  let parties = split ';' str
-      reactifs = split ',' (head parties)
-      inhibiteurs = split ',' (parties !! 1)
-      produits = split ',' (parties !! 2)
-   in Reaction reactifs inhibiteurs produits
+parserReaction entree =
+    let str = filter (/= '\r') entree
+        parties = split ';' str
+        reactifs = split ',' (head parties)
+        inhibiteurs = split ',' (parties !! 1)
+        produits = split ',' (parties !! 2)
+     in Reaction reactifs inhibiteurs produits
 
 -- Fonction pour charger les réactions depuis un fichier
 chargerReactions :: FilePath -> IO [Reaction]
 chargerReactions chemin = do
-  contenu <- readFile chemin
-  return $ map parserReaction (lines contenu)
+    contenu <- readFile chemin
+    return $ map parserReaction (lines contenu)
 
 -- Fonction pour charger le générateur depuis un fichier
 chargerGenerateur :: FilePath -> IO [Generateur]
@@ -185,26 +193,24 @@ chargerEntites chemin = do
 main :: IO ()
 main = do
   putStrLn "\n    [CHARGEMENT...]\n"
-  let profondeur = 10
   putStrLn "\n                    ------- GENERATEUR -------\n"
   generateur <- chargerGenerateur "./data/generateur.txt"
   print generateur
   putStrLn "\n                    ------- REACTIONS -------\n"
-  reactions <- chargerReactions "./data/BT474.txt"
+  reactions <- chargerReactions "./data/reactions.txt"
   mapM_ print reactions
   putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
   entites <- chargerEntites "./data/entites.txt"
   print entites
   putStrLn "\n    [TRAITEMENT...]\n"
   putStrLn "\n                 ------- CREATION DE L'ARBRE -------\n"
-  putStrLn ("PROFONDEUR MAX : " ++ show profondeur ++ "\n")
-  result <- afficherTousCasLst generateur reactions profondeur
+  result <- afficherTousCasLst generateur reactions
   putStrLn "\n                    ------- RESULT (LIST) -------\n"
   print result
   putStrLn "\n                    ------- RESULT (ARBRE) -------\n"
   afficherListeEnArbre result
   putStrLn "\n                    ------- VERIFICATION ENTITE -------\n"
-  mapM_ (\entite -> print (entite, verifEntite entite result)) entites
+  mapM_ (\entite -> print (entite, presenceEntite entite result)) entites
   putStrLn "\n    [FIN DU PROGRAMME]\n"
   putStrLn "\n"
 
