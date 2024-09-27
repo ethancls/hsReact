@@ -89,7 +89,7 @@ main = do
     let reactions = alphaSystem -- Ici, les réactions sont codées en dur pour le test
 
     -- Environnement initial avec des entités
-    let initialEnv = [] -- Environnement vide au départ
+    let initialEnv = [""] -- Environnement vide au départ
     -- Utilisation d'un générateur simple
     let generateur = ["a", "b"] -- Générateur de nouvelles entités
     -- Construction de l'arbre avec une profondeur maximale (ici, égale à la taille du générateur)

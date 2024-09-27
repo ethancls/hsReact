@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-x-partial #-}
 
+import Control.Monad qualified
 import Data.List (intercalate)
 
 -- Définitions des types
@@ -13,14 +14,20 @@ data Reaction = Reaction {reactifs :: [Entites], inhibiteurs :: [Entites], produ
 -- Définition d'un arbre N-aire avec suivi de l'historique
 data Arbre a = Feuille a | Noeud a [Arbre a] deriving (Show)
 
-reaction1 :: [Reaction]
-reaction1 =
+reactionTest1 :: [Reaction]
+reactionTest1 =
     [ Reaction ["a"] ["b"] ["c"] -- Si "a" est présent sans "b", "c" est produit
     , Reaction ["c"] ["a"] ["d"] -- Si "c" est présent sans "a", "d" est produit
     ]
 
-reaction2 :: [Reaction]
-reaction2 =
+generateurTest :: Generateur
+generateurTest = ["a", "b"]
+
+depth :: Integer
+depth = 5
+
+reactionTest2 :: [Reaction]
+reactionTest2 =
     [ Reaction ["egf"] ["e", "p"] ["erbb1"]
     , Reaction ["egf"] [] ["erk12"]
     , Reaction ["erk12"] [] ["p70s6k"]
@@ -34,7 +41,24 @@ verifReac :: Sequence -> Reaction -> Bool
 verifReac sequence reaction =
     all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
--- procRec ["egf"] reaction2
+-- Test des séquences sur l'ensemble des réactions
+-- verifSequence [["a"],["b"]] reactionTest1 --> [["c"],[]]
+-- verifSequence [["a","c"],["b","c"],["a", ""],["b", ""]] reactionTest1 --> [["c"],["d"],["c"],[]]
+verifSequence :: [Sequence] -> [Reaction] -> [[Entites]]
+verifSequence sequences reactions =
+    [ concat [produits reaction | reaction <- reactions, verifReac sequence reaction]
+    | sequence <- sequences
+    ]
+
+-- verifSequenceEach [["a"],["b"]] reactionTest1 --> [["c"],[]]
+-- verifSequenceEach [["a","c"],["b","c"],["a"],["b"]] reactionTest1 --> [["c","d"],["d"],["c"],[]]
+verifSequenceEach :: [Sequence] -> [Reaction] -> [[Entites]]
+verifSequenceEach sequences reactions =
+    [ applyReactionsUnique sequence reactions
+    | sequence <- sequences
+    ]
+
+-- procRec ["egf"] reactionTest2 --> [["erbb1","erk12"],["p70s6k"]]
 procRec :: Generateur -> [Reaction] -> [Sequence]
 procRec gLst reactions = processusRec [] gLst reactions
   where
@@ -58,8 +82,8 @@ notreNub lst = reverse (notreNubAux lst [])
     notreNubAux (x : xs) acc = if x `elem` acc then notreNubAux [] acc else notreNubAux xs (x : acc)
 
 -- Appliquer les réactions pour produire de nouvelles entités
--- applyReactionsUnique ["a","c"] reaction1 --> ["c","d"]
--- applyReactionsUnique ["b"] reaction1 --> []
+-- applyReactionsUnique ["a","c"] reactionTest1 --> ["c","d"]
+-- applyReactionsUnique ["b"] reactionTest1 --> []
 applyReactionsUnique :: Sequence -> [Reaction] -> Sequence
 applyReactionsUnique sequence reactions = foldl appliquerReactionsPourEntite [] sequence
   where
@@ -67,3 +91,27 @@ applyReactionsUnique sequence reactions = foldl appliquerReactionsPourEntite [] 
       where
         produitsSiActive r = if verifReac [entite] r then produits r else []
     ajouterUnique acc x = if x `elem` acc then acc else acc ++ [x] -- Ajouter des éléments uniques à la séquence résultante
+
+-- doTree generateurTest reactionTest1 depth
+doTree :: Generateur -> [Reaction] -> Integer -> IO ()
+doTree generateur reactions depth = doTreeAux generateur reactions depth 0 [] [[]]
+  where
+    doTreeAux generateur reactions depth currentDepth currentRes previousRes =
+        Control.Monad.when (currentDepth < depth) $ do
+            print previousRes
+            let currentResTemp = verifSequenceEach previousRes reactions
+            let currentRes = concatMap (\res -> map (\g -> g : res) generateur) currentResTemp
+            doTreeAux generateur reactions depth (currentDepth + 1) [] currentRes
+
+-- doTree generateurTest reactionTest1 depth
+-- doTree :: Generateur -> [Reaction] -> Integer -> IO ()
+-- doTree generateur reactions depth = doTreeAux generateur reactions depth 0 [] [[]]
+--   where
+--     doTreeAux generateur reactions depth currentDepth currentRes previousRes =
+--         if currentDepth < depth
+--             then do
+--                 print previousRes
+--                 let currentResTemp = verifSequenceEach previousRes reactions
+--                 let currentRes = concatMap (\res -> map (\g -> g : res) generateur) currentResTemp
+--                 doTreeAux generateur reactions depth (currentDepth + 1) [] currentRes
+--             else return ()
