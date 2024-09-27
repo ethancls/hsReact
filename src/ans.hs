@@ -157,7 +157,7 @@ loadGenerateur path = do
 
 main :: IO ()
 main = do
-    let depth = 100
+    let depth = 4
     generateur <- loadGenerateur "generateur.txt"
     reactions <- loadReactions "reactions.txt"
     doTree generateur reactions depth
