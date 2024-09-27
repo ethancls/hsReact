@@ -110,7 +110,7 @@ chargerReactions chemin = do
 chargeAfficherReactions :: FilePath -> IO ()
 chargeAfficherReactions chemin = do
     reactions <- chargerReactions chemin
-    putStrLn "\n                    ------- REACTIONS -------"
+    putStrLn "\n                    ------- REACTIONS -------\n"
     mapM_ print reactions -- Afficher chaque réaction sur une nouvelle ligne
     putStrLn "\n"
 
@@ -137,7 +137,9 @@ main = do
     let profondeur = 5
     generateur <- chargerGenerateur "generateur.txt"
     reactions <- chargerReactions "reactions.txt"
+    putStrLn "\n                    ------- RESULT (LISTS) -------\n"
     genererTousCas generateur reactions profondeur
+    putStrLn "\n\n"
 
 --    *********************** TESTS ***********************
 -- verifReac ["a","c","d"] (Reaction ["a"] ["b"] ["c"]) --> True
