@@ -146,13 +146,19 @@ loadReactions path = do
     contents <- readFile path
     return $ map parseReaction (lines contents)
 
+-- Fonction pour charger les générateurs depuis un fichier
+loadGenerateur :: FilePath -> IO Generateur
+loadGenerateur path = do
+    contents <- readFile path
+    return $ splitBy ',' (head (lines contents))
+
 
 -- ******** MAIN ********
 
 main :: IO ()
 main = do
-    let depth = 5
-    let generateur = ["a", "b"]
+    let depth = 100
+    generateur <- loadGenerateur "generateur.txt"
     reactions <- loadReactions "reactions.txt"
     doTree generateur reactions depth
     return ()
