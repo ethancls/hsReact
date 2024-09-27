@@ -1,48 +1,33 @@
 {-
---    *********************** SYSTÈME DE RÉACTION ***********************
+
+--   *********************** SYSTÈME DE RÉACTION ***********************
 
 \$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
 \$ D.PALAHIN 12106973 dmytro.palahin@edu.univ-paris13.fr
+
 -}
-{-# OPTIONS_GHC -Wno-x-partial #-}
 
 --    *********************** IMPORTS ***********************
+
 import Control.Monad (when)
 import Data.List (intercalate, nub)
 
 --    *********************** TYPES ***********************
+
 type Entites = String
 type Generateur = [Entites]
 type Sequence = [Entites]
 
 --    *********************** DATA ***********************
+
 -- Définition d'une réaction avec les réactifs, les inhibiteurs et les produits
 data Reaction = Reaction {reactifs :: [Entites], inhibiteurs :: [Entites], produits :: [Entites]} deriving (Show, Eq)
 
--- Définition d'un arbre N-aire avec suivi de l'historique
+-- Définition d'un arbre N-aire
 data Arbre a = Feuille a | Noeud a [Arbre a] deriving (Show)
 
---    *********************** VARIABLES ***********************
-reactionTest1 :: [Reaction]
-reactionTest1 =
-    [ Reaction ["a"] ["b"] ["c"] -- Si "a" est présent sans "b", "c" est produit
-    , Reaction ["c"] ["a"] ["d"] -- Si "c" est présent sans "a", "d" est produit
-    ]
-
-generateurTest :: Generateur
-generateurTest = ["a", "b"]
-
-profondeur :: Integer
-profondeur = 5
-
-reactionTest2 :: [Reaction]
-reactionTest2 =
-    [ Reaction ["egf"] ["e", "p"] ["erbb1"]
-    , Reaction ["egf"] [] ["erk12"]
-    , Reaction ["erk12"] [] ["p70s6k"]
-    ]
-
 --    *********************** FONCTIONS DE VÉRIFICATIONS ***********************
+
 -- Vérifier si une réaction est activée (c'est-à-dire tous les réactifs sont présents et aucun inhibiteur n'est présent)
 verifReac :: Sequence -> Reaction -> Bool
 verifReac sequence reaction =
@@ -60,6 +45,7 @@ verifSequenceEach sequences reactions =
     map (`appliquerReactionsUnique` reactions) sequences
 
 --    *********************** FONCTIONS ***********************
+
 procRec :: Generateur -> [Reaction] -> [Sequence]
 procRec gLst reactions = processusRec [] gLst reactions
   where
@@ -85,6 +71,7 @@ appliquerReactionsUnique sequence reactions = foldl appliquerReactionsPourEntite
     ajouterUnique acc x = if x `elem` acc then acc else acc ++ [x]
 
 --    *********************** FONCTIONS DE CHARGEMENT ***********************
+
 -- Fonction pour découper une chaîne en fonction d'un séparateur
 decouperPar :: Char -> String -> [String]
 decouperPar separateur = foldr (\c l -> if c == separateur then [] : l else (c : head l) : tail l) [[]]
@@ -107,7 +94,7 @@ chargerReactions chemin = do
 chargeAfficherReactions :: FilePath -> IO ()
 chargeAfficherReactions chemin = do
     reactions <- chargerReactions chemin
-    putStrLn "\n                    ------- REACTIONS -------\n"
+    putStrLn "\n                    ------- REACTIONS -------"
     mapM_ print reactions -- Afficher chaque réaction sur une nouvelle ligne
     putStrLn "\n"
 
@@ -127,6 +114,7 @@ chargeAfficherGenerateur chemin = do
     putStrLn "\n"
 
 --    *********************** AFFICHAGE DU PROCESSUS ***********************
+
 afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO ()
 afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 0 [[]]
   where
@@ -137,7 +125,10 @@ afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux gener
             let currentRes = [g : res | res <- currentResTemp, g <- generateur]
             afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes
 
+-- ************************** ARBRE ****************************
+
 -- Fonction pour générer l'arbre avec toutes les possibilités
+
 processusRecNAire :: Sequence -> [Reaction] -> Generateur -> Int -> [Sequence] -> Arbre (Sequence, Sequence)
 processusRecNAire env reactions [] _ _ = Feuille (env, env)
 processusRecNAire env reactions generateur depth history
