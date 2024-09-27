@@ -1,96 +1,55 @@
---- Case study SKBR3 long-term experiments 
-load ../semantics .
-mod MySystem is
- inc SEMANTICS .
- ops akt bax cjun craf cyclinb1 cyclind1 e erbb1 erbb2 erbb3 erk12 foxo13a
-     gsk3ab nfkb p p38 p53 p70s6k pras pten rb rps6 s t tsc2 : -> Entity [ctor] .
-
-  eq reactions = 
-   [ akt ; (pten , cyclinb1) ; akt ], 
-   [ s ; (pten , cyclinb1) ; akt ], 
-   [ erbb2 ; (pten , cyclinb1) ; akt ], 
-   [ erbb1 ; (pten , cyclinb1) ; akt ], 
-   [ erbb3 ; (pten , cyclinb1) ; akt ], 
-   [ bax ; empty ; bax ], 
-   [ erbb1 ; empty ; bax ], 
-   [ cjun ; gsk3ab ; cjun ], 
-   [ craf ; (p53 , erk12) ; craf ], 
-   [ rps6 ; (p53 , erk12) ; craf ], 
-   [ erbb2 ; (p53 , erk12) ; craf ], 
-   [ erbb1 ; (p53 , erk12) ; craf ], 
-   [ cyclinb1 ; p53 ; cyclinb1 ], 
-   [ p70s6k ; p53 ; cyclinb1 ], 
-   [ cyclind1 ; gsk3ab ; cyclind1 ], 
-   [ cjun ; gsk3ab ; cyclind1 ], 
-   [ erk12 ; gsk3ab ; cyclind1 ], 
-   [ akt ; gsk3ab ; cyclind1 ], 
-   [ pten ; gsk3ab ; cyclind1 ], 
-   [ erbb1 ; (e , p) ; erbb1 ], 
-   [ s ; (e , p) ; erbb1 ], 
-   [ erbb2 ; (e , p , t) ; erbb2 ], 
-   [ s ; (e , p , t) ; erbb2 ], 
-   [ bax ; (e , p , t) ; erbb2 ], 
-   [ erbb3 ; (e , p , akt) ; erbb3 ], 
-   [ s ; (e , p , akt) ; erbb3 ], 
-   [ erk12 ; empty ; erk12 ], 
-   [ craf ; empty ; erk12 ], 
-   [ cyclinb1 ; empty ; erk12 ], 
-   [ erbb1 ; empty ; erk12 ], 
-   [ foxo13a ; akt ; foxo13a ], 
-   [ gsk3ab ; empty ; gsk3ab ], 
-   [ p53 ; empty ; gsk3ab ], 
-   [ nfkb ; empty ; nfkb ], 
-   [ rps6 ; empty ; nfkb ], 
-   [ erbb3 ; empty ; nfkb ], 
-   [ p38 ; empty ; p38 ], 
-   [ akt ; empty ; p38 ], 
-   [ p53 ; empty ; p53 ], 
-   [ rb ; empty ; p53 ], 
-   [ pten ; empty ; p53 ], 
-   [ cyclinb1 ; empty ; p53 ], 
-   [ p70s6k ; (pras , tsc2) ; p70s6k ], 
-   [ erk12 ; (pras , tsc2) ; p70s6k ], 
-   [ erbb2 ; (pras , tsc2) ; p70s6k ], 
-   [ pras ; akt ; pras ], 
-   [ erbb3 ; akt ; pras ], 
-   [ pten ; gsk3ab ; pten ], 
-   [ p70s6k ; gsk3ab ; pten ], 
-   [ rb ; (p53 , cyclind1 , tsc2) ; rb ], 
-   [ erbb2 ; (p53 , cyclind1 , tsc2) ; rb ], 
-   [ rps6 ; empty ; rps6 ], 
-   [ p70s6k ; empty ; rps6 ], 
-   [ tsc2 ; (erk12 , akt , gsk3ab) ; tsc2 ], 
-   [ erbb2 ; (erk12 , akt , gsk3ab) ; tsc2 ] .
-
-
-endm
-
-eof 
-
---- -----------------------------
---- Steady state and using drugs 
---- -----------------------------
---- 0. Empty 
-umaudemc check SKBR3-ext "init(  (rec 'X . ( { s } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init(  (rec 'X . ( { s } . 'X ))  )" "E <> (isSteady /\ rb)" 
-
-umaudemc check SKBR3-ext "init(  (rec 'X . ( { (e, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init(  (rec 'X . ( { (e, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
-
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (p, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (p, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
-
-umaudemc check SKBR3-ext "init(  (rec 'X . ( { (t, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init(  (rec 'X . ( { (t, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
-
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (e, p, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (e, p, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
-
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (e, t, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (e, t, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
-
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (p, t, s)  } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (p, t, s)  } . 'X ))  )" "E <> (isSteady /\ rb)" 
-
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (e, p, t, s) } . 'X ))  )" "E <> (isSteady /\ rps6)" 
-umaudemc check SKBR3-ext "init( (rec 'X . ( { (e, p, t, s) } . 'X ))  )" "E <> (isSteady /\ rb)" 
+akt;pten,cyclinb1;akt
+s;pten,cyclinb1;akt
+erbb2;pten,cyclinb1;akt
+erbb1;pten,cyclinb1;akt
+erbb3;pten,cyclinb1;akt
+bax;;bax
+erbb1;;bax
+cjun;gsk3ab;cjun
+craf;p53,erk12;craf
+rps6;p53,erk12;craf
+erbb2;p53,erk12;craf
+erbb1;p53,erk12;craf
+cyclinb1;p53;cyclinb1
+p70s6k;p53;cyclinb1
+cyclind1;gsk3ab;cyclind1
+cjun;gsk3ab;cyclind1
+erk12;gsk3ab;cyclind1
+akt;gsk3ab;cyclind1
+pten;gsk3ab;cyclind1
+erbb1;e,p;erbb1
+s;e,p;erbb1
+erbb2;e,p,t;erbb2
+s;e,p,t;erbb2
+bax;e,p,t;erbb2
+erbb3;e,p,akt;erbb3
+s;e,p,akt;erbb3
+erk12;;erk12
+craf;;erk12
+cyclinb1;;erk12
+erbb1;;erk12
+foxo13a;akt;foxo13a
+gsk3ab;;gsk3ab
+p53;;gsk3ab
+nfkb;;nfkb
+rps6;;nfkb
+erbb3;;nfkb
+p38;;p38
+akt;;p38
+p53;;p53
+rb;;p53
+pten;;p53
+cyclinb1;;p53
+p70s6k;pras,tsc2;p70s6k
+erk12;pras,tsc2;p70s6k
+erbb2;pras,tsc2;p70s6k
+pras;akt;pras
+erbb3;akt;pras
+pten;gsk3ab;pten
+p70s6k;gsk3ab;pten
+rb;p53,cyclind1,tsc2;rb
+erbb2;p53,cyclind1,tsc2;rb
+rps6;;rps6
+p70s6k;;rps6
+tsc2;erk12,akt,gsk3ab;tsc2
+erbb2;erk12,akt,gsk3ab;tsc2
