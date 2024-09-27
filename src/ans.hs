@@ -37,14 +37,14 @@ verifReac sequence reaction =
   all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
 
 -- Fonction pour vérifier si un inhibiteur est présent dans une liste de réactifs
-containsInhibitor :: [String] -> [String] -> Bool
-containsInhibitor reactifs inhibiteurs = any (`elem` reactifs) inhibiteurs
+contientInhibiteurs :: [String] -> [String] -> Bool
+contientInhibiteurs reactifs = any (`elem` reactifs)
 
--- Fonction auxiliaire qui vérifie si une entité peut réagir, en prenant en compte toute la séquence
+-- Fonction qui vérifie si une entité peut réagir
 verifEntite :: String -> Sequence -> [Reaction] -> Sequence
 verifEntite entite sequence reactions =
   -- Chercher une réaction valide pour l'entité, en comparant avec toute la séquence (réactifs et inhibiteurs)
-  concat [produits r | r <- reactions, entite `elem` reactifs r, not (containsInhibitor sequence (inhibiteurs r))]
+  concat [produits r | r <- reactions, entite `elem` reactifs r, not (contientInhibiteurs sequence (inhibiteurs r))]
 
 -- Vérifier chaque entité dans la séquence pour voir si elle peut réagir
 verifSequence :: Sequence -> [Reaction] -> Sequence
@@ -162,7 +162,7 @@ split separateur = foldr (\c l -> if c == separateur then [] : l else (c : head 
 -- Fonction pour parser une ligne de réaction du fichier
 parserReaction :: String -> Reaction
 parserReaction entree =
-    let str = filter (/= '\r') entree
+    let str = filter (/= '\r') entree -- Supprimer les caractères Windows
         parties = split ';' str
         reactifs = split ',' (head parties)
         inhibiteurs = split ',' (parties !! 1)
@@ -197,7 +197,7 @@ main = do
   generateur <- chargerGenerateur "./data/generateur.txt"
   print generateur
   putStrLn "\n                    ------- REACTIONS -------\n"
-  reactions <- chargerReactions "./data/reactions.txt"
+  reactions <- chargerReactions "./data/HCC1954-ext.txt"
   mapM_ print reactions
   putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
   entites <- chargerEntites "./data/entites.txt"
