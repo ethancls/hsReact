@@ -326,7 +326,7 @@ hsreact = do
 
     (generateur, reactions, entites) <- askForFiles
 
-    putStrLn "\nAfficher les donnees chargees ? (y/n)"
+    putStrLn "\n\nAfficher les donnees chargees ? (y/n)"
     reponse <- getCustomLine
     if reponse == "y"
         then do
@@ -345,7 +345,7 @@ hsreact = do
 
     result <- afficherTousCasLst generateur reactions
 
-    putStrLn "Afficher les etats ? (y/n)"
+    putStrLn "\n\nAfficher les etats ? (y/n)"
     reponse <- getCustomLine
     if reponse == "y"
         then do
@@ -358,21 +358,34 @@ hsreact = do
 
     putStrLn "\n               ------- VERIFICATION ENTITE -------\n"
 
-    mapM_ (\entite -> print (entite, presenceEntite entite result)) entites
+    let maxLength = maximum (map length entites)
+
+    mapM_
+        ( \entite ->
+            let presence = presenceEntite entite result
+                message =
+                    if presence
+                        then "est présente"
+                        else "n'est pas présente"
+                paddedEntite = entite ++ replicate (maxLength - length entite) ' '
+             in putStrLn $ paddedEntite ++ " --> " ++ message
+        )
+        entites
 
     putStrLn "\n                ------- VERIFICATION PHI -------\n"
 
-    let phi = "(! akt)^(! e)"
+    -- let phi = "(! akt)^(! e)"
+    let phi = "egf ^ ! erk12"
     putStrLn $ "Proposition : " ++ show phi
     print $ parsePhi phi
-    putStrLn "Il y a au moins un etat au cours de l'execution qui verifie la proposition"
+    putStrLn "\nIl y a au moins un etat au cours de l'execution qui verifie la proposition"
     print $ eventually (parsePhi phi) result
-    putStrLn "Tous les etats au cours de l'execution verifient la proposition"
+    putStrLn "\nTous les etats au cours de l'execution verifient la proposition"
     print $ always (parsePhi phi) result
-    putStrLn "On a au moisn un p70s6k jusqu'a ce que l'entite mtor soit produite"
+    putStrLn "\nOn a au moisn un p70s6k jusqu'a ce que l'entite mtor soit produite"
     print $ untilP (parsePhi "p70s6k") (parsePhi "mtor") result
 
-    putStrLn "\n    [FIN DU PROGRAMME]\n"
+    putStrLn "\n    [FIN DU PROGRAMME]\n\n\n"
 
 --    *********************** TESTS ***********************
 
