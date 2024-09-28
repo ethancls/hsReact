@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-x-partial #-}
+
 {-
 
     ******************* SYSTÈME DE RÉACTION ******************
@@ -9,6 +11,7 @@
 
 --    *********************** IMPORTS ***********************
 
+import Control.Exception (IOException, catch)
 import Data.List (nub)
 
 --    *********************** TYPES ***********************
@@ -142,22 +145,38 @@ parserReaction entree =
      in Reaction reactifs inhibiteurs produits
 
 -- Fonction pour charger les réactions depuis un fichier
+
 chargerReactions :: FilePath -> IO [Reaction]
 chargerReactions chemin = do
-    contenu <- readFile chemin
+    contenu <- catch (readFile chemin) handleReadError
     return $ map parserReaction (lines contenu)
+  where
+    handleReadError :: IOException -> IO String
+    handleReadError e = do
+        putStrLn $ "Erreur de lecture du fichier de réactions --> aucun fichier ou répertoire de ce nom !"
+        return ""
 
 -- Fonction pour charger le générateur depuis un fichier
 chargerGenerateur :: FilePath -> IO [Generateur]
 chargerGenerateur chemin = do
-    contenu <- readFile chemin
+    contenu <- catch (readFile chemin) handleReadError
     return $ map (split ',') (split ';' contenu)
+  where
+    handleReadError :: IOException -> IO String
+    handleReadError e = do
+        putStrLn $ "Erreur de lecture du fichier de générateur --> aucun fichier ou répertoire de ce nom !"
+        return ""
 
 -- Fonction pour charger les entités à vérifier depuis un fichier
 chargerEntites :: FilePath -> IO [Entites]
 chargerEntites chemin = do
-    contenu <- readFile chemin
+    contenu <- catch (readFile chemin) handleReadError
     return $ split ',' (head (lines contenu))
+  where
+    handleReadError :: IOException -> IO String
+    handleReadError e = do
+        putStrLn $ "Erreur de lecture du fichier d'entités à vérifier --> aucun fichier ou répertoire de ce nom !"
+        return ""
 
 --   *********************** PROPOSITIONS LOGIQUES ***********************
 
@@ -225,31 +244,36 @@ hsreact = do
         )
     putStrLn "\n    [CHARGEMENT...]\n"
 
-    putStrLn "Utiliser les fichiers de test par défaut ? (y/n)"
-    reponse <- getLine
+    let askForFiles = do
+            putStrLn "Utiliser les fichiers de test par défaut ? (y/n)"
+            reponse <- getLine
+            case reponse of
+                "y" -> do
+                    putStrLn "Utilisation des fichiers de test par défaut..."
+                    generateur <- chargerGenerateur "./data/generateur.txt"
+                    reactions <- chargerReactions "./data/HCC1954.txt"
+                    entites <- chargerEntites "./data/entites.txt"
+                    putStrLn "Fichiers chargés avec succès !"
+                    return (generateur, reactions, entites)
+                "n" -> do
+                    putStrLn "\nEntrez le chemin du fichier de générateur :"
+                    cheminGenerateur <- getLine
+                    generateur <- chargerGenerateur cheminGenerateur
+                    putStrLn "\nEntrez le chemin du fichier de réactions :"
+                    cheminReactions <- getLine
+                    reactions <- chargerReactions cheminReactions
+                    putStrLn "\nEntrez le chemin du fichier d'entités à vérifier :"
+                    cheminEntites <- getLine
+                    entites <- chargerEntites cheminEntites
+                    putStrLn "Fichiers chargés avec succès !"
+                    return (generateur, reactions, entites)
+                _ -> do
+                    putStrLn "Réponse invalide ! Veuillez répondre par 'y' ou 'n'.\n\n"
+                    askForFiles
 
-    (generateur, reactions, entites) <-
-        if reponse == "n"
-            then do
-                putStrLn "Entrez le chemin du fichier de générateur :"
-                cheminGenerateur <- getLine
-                putStrLn "Entrez le chemin du fichier de réactions :"
-                cheminReactions <- getLine
-                putStrLn "Entrez le chemin du fichier d'entités à vérifier :"
-                cheminEntites <- getLine
-                generateur <- chargerGenerateur cheminGenerateur
-                reactions <- chargerReactions cheminReactions
-                entites <- chargerEntites cheminEntites
-                putStrLn "Fichiers chargés avec succès !"
-                return (generateur, reactions, entites)
-            else do
-                generateur <- chargerGenerateur "./data/generateur.txt"
-                reactions <- chargerReactions "./data/HCC1954.txt"
-                entites <- chargerEntites "./data/entites.txt"
-                putStrLn "Fichiers chargés avec succès !"
-                return (generateur, reactions, entites)
+    (generateur, reactions, entites) <- askForFiles
 
-    putStrLn "Afficher les donnees chargees ? (y/n)"
+    putStrLn "\nAfficher les donnees chargees ? (y/n)"
     reponse <- getLine
     if reponse == "y"
         then do
