@@ -186,13 +186,14 @@ parsePhi str =
   let tokens = words str
    in parseTokens tokens
 
--- Fonction auxiliaire pour parser les tokens en une Phi
+-- Fonction auxiliaire pour parser
 parseTokens :: [String] -> Phi
 parseTokens [x] = Var x
 parseTokens ("!":xs) = Not (parseTokens xs)
 parseTokens (x:"^":xs) = And (Var x) (parseTokens xs)
 parseTokens (x:"v":xs) = Or (Var x) (parseTokens xs)
 parseTokens _ = error "Invalid format"
+
 -- Fonction pour vérifier si une entité est éventuellement produite dans une séquence
 eventually :: Phi -> [[Sequence]] -> Bool
 eventually phi = any (any (testProp phi))
