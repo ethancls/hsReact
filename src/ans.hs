@@ -100,7 +100,7 @@ presenceEntite entite = any (any (elem entite))
 
 --    ************************** ARBRE ****************************
 
--- Fonction pour imprimer l'arbre entier de manière récursive
+-- Fonction pour imprimer l'arbre entier
 printArbreComplet :: (Show a) => Arbre a -> Int -> IO ()
 printArbreComplet (Feuille val) indent = putStrLn (replicate indent '-' ++ " Feuille: " ++ show val)
 printArbreComplet (Noeud val enfants) indent = do
@@ -159,7 +159,7 @@ chargerEntites chemin = do
   contenu <- readFile chemin
   return $ split ',' (head (lines contenu))
 
---   *********************** PhiS ***********************
+--   *********************** PROPOSITIONS LOGIQUES ***********************
 
 -- Expression Phi
 data Phi
