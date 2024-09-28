@@ -43,7 +43,7 @@ verifEntite entite sequence reactions =
 verifSequence :: Sequence -> [Reaction] -> Sequence
 verifSequence sequence reactions = nub $ concatMap (\entite -> verifEntite entite sequence reactions) sequence
 
--- Verifier si une liste de séquence produit une réaction
+-- Verifier une liste de séquence 
 verifSysteme :: [Sequence] -> [Reaction] -> [Sequence]
 verifSysteme sequences reactions =
   [verifSequence sequence reactions | sequence <- sequences]
