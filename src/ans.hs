@@ -29,13 +29,6 @@ data Arbre a = Feuille a | Noeud a [Arbre a] deriving (Show)
 
 --    *********************** FONCTIONS DE VÉRIFICATIONS ***********************
 
--- Vérifier si une réaction est activée (c'est-à-dire tous les réactifs sont présents et aucun inhibiteur n'est présent)
-verifReac :: Sequence -> Reaction -> Bool
-verifReac sequence reaction =
-  -- Vérifie si tous les éléments de la liste 'reactifs reaction' sont présents dans la liste 'sequence'
-  -- et s'il n'y a aucun élément de la liste 'inhibiteurs reaction' présent dans la liste 'sequence'.
-  all (`elem` sequence) (reactifs reaction) && not (any (`elem` sequence) (inhibiteurs reaction))
-
 -- Fonction pour vérifier si un inhibiteur est présent dans une liste de réactifs
 contientInhibiteurs :: [String] -> [String] -> Bool
 contientInhibiteurs reactifs = any (`elem` reactifs)
