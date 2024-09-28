@@ -12,7 +12,9 @@
 --    *********************** IMPORTS ***********************
 
 import Control.Exception (IOException, catch, try)
+import Control.Monad (when)
 import Data.List (nub)
+import System.IO (BufferMode (NoBuffering), hSetBuffering, hSetEcho, stdin)
 
 --    *********************** TYPES ***********************
 
@@ -153,7 +155,7 @@ chargerReactions path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier de réactions --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier de réactions:"
-            newPath <- getLine
+            newPath <- getCustomLine
             chargerReactions newPath -- Recursive call to retry with a new path
         Right content -> return $ map parserReaction (lines content)
 
@@ -165,7 +167,7 @@ chargerGenerateur path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier de générateur --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier de générateur:"
-            newPath <- getLine
+            newPath <- getCustomLine
             chargerGenerateur newPath -- Recursive call to retry with a new path
         Right content -> return $ map (split ',') (split ';' content)
 
@@ -177,9 +179,35 @@ chargerEntites path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier d'entités --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier d'entités :"
-            newPath <- getLine
+            newPath <- getCustomLine
             chargerEntites newPath -- Recursive call to retry with a new path
         Right content -> return $ split ',' (head (lines content))
+
+--    *********************** FONCTION DE LIRE LIGNE AVEC DELETE **********************
+
+-- Custom getLine function that handles backspace
+getCustomLine :: IO String
+getCustomLine = do
+    hSetEcho stdin False -- Disable echoing
+    hSetBuffering stdin NoBuffering -- Disable buffering
+    loop ""
+  where
+    loop :: String -> IO String
+    loop str = do
+        char <- getChar
+        case char of
+            '\n' -> do
+                -- Enter key
+                putChar '\n'
+                return str
+            '\DEL' -> do
+                -- Handle delete/backspace
+                when (not (null str)) $ do
+                    putStr "\b \b" -- Move back, overwrite with space, then move back again
+                loop (if null str then str else init str) -- Remove the last character
+            _ -> do
+                putChar char
+                loop (str ++ [char])
 
 --   *********************** PROPOSITIONS LOGIQUES ***********************
 
@@ -249,7 +277,7 @@ hsreact = do
 
     let askForFiles = do
             putStrLn "Utiliser les fichiers de test par défaut ? (y/n)"
-            reponse <- getLine
+            reponse <- getCustomLine
             case reponse of
                 "y" -> do
                     putStrLn "Utilisation des fichiers de test par défaut..."
@@ -261,13 +289,13 @@ hsreact = do
                 "n" -> do
                     putStrLn "\nExample de la chemin vers votre fichier est : ./data/fichier.txt"
                     putStrLn "\nEntrez le chemin du fichier de générateur :"
-                    cheminGenerateur <- getLine
+                    cheminGenerateur <- getCustomLine
                     generateur <- chargerGenerateur cheminGenerateur
                     putStrLn "\nEntrez le chemin du fichier de réactions :"
-                    cheminReactions <- getLine
+                    cheminReactions <- getCustomLine
                     reactions <- chargerReactions cheminReactions
                     putStrLn "\nEntrez le chemin du fichier d'entités à vérifier :"
-                    cheminEntites <- getLine
+                    cheminEntites <- getCustomLine
                     entites <- chargerEntites cheminEntites
                     putStrLn "Fichiers chargés avec succès !"
                     return (generateur, reactions, entites)
@@ -278,7 +306,7 @@ hsreact = do
     (generateur, reactions, entites) <- askForFiles
 
     putStrLn "\nAfficher les donnees chargees ? (y/n)"
-    reponse <- getLine
+    reponse <- getCustomLine
     if reponse == "y"
         then do
             putStrLn "\n                    ------- GENERATEUR -------\n"
@@ -297,7 +325,7 @@ hsreact = do
     result <- afficherTousCasLst generateur reactions
 
     putStrLn "Afficher les etats ? (y/n)"
-    reponse <- getLine
+    reponse <- getCustomLine
     if reponse == "y"
         then do
             putStrLn "\n                  ------- RESULTAT (LISTE) -------\n"
