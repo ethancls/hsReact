@@ -11,7 +11,7 @@
 
 --    *********************** IMPORTS ***********************
 
-import Control.Exception (IOException, catch)
+import Control.Exception (IOException, catch, try)
 import Data.List (nub)
 
 --    *********************** TYPES ***********************
@@ -147,36 +147,39 @@ parserReaction entree =
 -- Fonction pour charger les réactions depuis un fichier
 
 chargerReactions :: FilePath -> IO [Reaction]
-chargerReactions chemin = do
-    contenu <- catch (readFile chemin) handleReadError
-    return $ map parserReaction (lines contenu)
-  where
-    handleReadError :: IOException -> IO String
-    handleReadError e = do
-        putStrLn $ "Erreur de lecture du fichier de réactions --> aucun fichier ou répertoire de ce nom !"
-        return ""
+chargerReactions path = do
+    result <- try (readFile path) :: IO (Either IOException String)
+    case result of
+        Left _ -> do
+            putStrLn "\n❌Erreur de lecture du fichier de réactions --> aucun fichier ou répertoire de ce nom !"
+            putStrLn "Veuillez entrer un chemin valide pour le fichier de réactions:"
+            newPath <- getLine
+            chargerReactions newPath -- Recursive call to retry with a new path
+        Right content -> return $ map parserReaction (lines content)
 
 -- Fonction pour charger le générateur depuis un fichier
 chargerGenerateur :: FilePath -> IO [Generateur]
-chargerGenerateur chemin = do
-    contenu <- catch (readFile chemin) handleReadError
-    return $ map (split ',') (split ';' contenu)
-  where
-    handleReadError :: IOException -> IO String
-    handleReadError e = do
-        putStrLn $ "Erreur de lecture du fichier de générateur --> aucun fichier ou répertoire de ce nom !"
-        return ""
+chargerGenerateur path = do
+    result <- try (readFile path) :: IO (Either IOException String)
+    case result of
+        Left _ -> do
+            putStrLn "\n❌Erreur de lecture du fichier de générateur --> aucun fichier ou répertoire de ce nom !"
+            putStrLn "Veuillez entrer un chemin valide pour le fichier de générateur:"
+            newPath <- getLine
+            chargerGenerateur newPath -- Recursive call to retry with a new path
+        Right content -> return $ map (split ',') (split ';' content)
 
 -- Fonction pour charger les entités à vérifier depuis un fichier
 chargerEntites :: FilePath -> IO [Entites]
-chargerEntites chemin = do
-    contenu <- catch (readFile chemin) handleReadError
-    return $ split ',' (head (lines contenu))
-  where
-    handleReadError :: IOException -> IO String
-    handleReadError e = do
-        putStrLn $ "Erreur de lecture du fichier d'entités à vérifier --> aucun fichier ou répertoire de ce nom !"
-        return ""
+chargerEntites path = do
+    result <- try (readFile path) :: IO (Either IOException String)
+    case result of
+        Left _ -> do
+            putStrLn "\n❌Erreur de lecture du fichier d'entités --> aucun fichier ou répertoire de ce nom !"
+            putStrLn "Veuillez entrer un chemin valide pour le fichier d'entités :"
+            newPath <- getLine
+            chargerEntites newPath -- Recursive call to retry with a new path
+        Right content -> return $ split ',' (head (lines content))
 
 --   *********************** PROPOSITIONS LOGIQUES ***********************
 
@@ -238,9 +241,9 @@ hsreact = do
             ++ "                  ██╔══██║╚════██║██╔══██╗██╔══╝  ██╔══██║██║        ██║   \n"
             ++ "                  ██║  ██║███████║██║  ██║███████╗██║  ██║╚██████╗   ██║   \n"
             ++ "                  ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝   ╚═╝   \n"
-            ++ "\n > SUP GALILEE - UNIVERSITE PARIS 13 - G4SI2 - PROJET SYSTEME DE REACTION\n"
-            ++ "   > ETHAN NICOLAS & DMYTRO PALAHIN\n"
-            ++ "    > 2024\n"
+            ++ "\n > 🎯🎯 SUP GALILEE - UNIVERSITE PARIS 13 - G4SI2 - 🔥PROJET SYSTEME DE REACTION🔥\n"
+            ++ "   > 🥷 ETHAN NICOLAS & 🥷 DMYTRO PALAHIN\n"
+            ++ "    > ⏰ 2024\n"
         )
     putStrLn "\n    [CHARGEMENT...]\n"
 
@@ -253,9 +256,10 @@ hsreact = do
                     generateur <- chargerGenerateur "./data/generateur.txt"
                     reactions <- chargerReactions "./data/HCC1954.txt"
                     entites <- chargerEntites "./data/entites.txt"
-                    putStrLn "Fichiers chargés avec succès !"
+                    putStrLn "Fichiers chargés avec succès 🎉🎉🎊🎊"
                     return (generateur, reactions, entites)
                 "n" -> do
+                    putStrLn "\nExample de la chemin vers votre fichier est : ./data/fichier.txt"
                     putStrLn "\nEntrez le chemin du fichier de générateur :"
                     cheminGenerateur <- getLine
                     generateur <- chargerGenerateur cheminGenerateur
@@ -268,7 +272,7 @@ hsreact = do
                     putStrLn "Fichiers chargés avec succès !"
                     return (generateur, reactions, entites)
                 _ -> do
-                    putStrLn "Réponse invalide ! Veuillez répondre par 'y' ou 'n'.\n\n"
+                    putStrLn "❌Réponse invalide ! Veuillez répondre par 'y' ou 'n'.\n\n"
                     askForFiles
 
     (generateur, reactions, entites) <- askForFiles

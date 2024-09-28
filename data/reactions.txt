@@ -1,8 +1,2 @@
-<<<<<<< HEAD:reactions.txt
-egf;e,p;erbb1
-egf;;erk12
-erk12;;p70s6k
-=======
 a;b;c
 c;a;d
->>>>>>> main:data/reactions.txt
