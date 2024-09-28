@@ -280,11 +280,28 @@ hsreact = do
             reponse <- getCustomLine
             case reponse of
                 "y" -> do
-                    putStrLn "Utilisation des fichiers de test par défaut..."
+                    putStrLn "\nNous avons les fichiers de réactions suivants :"
+                    putStrLn "1. HCC1954.txt"
+                    putStrLn "2. HCC1954-ext.txt"
+                    putStrLn "3. BT474.txt"
+                    putStrLn "4. BT474-ext.txt"
+                    putStrLn "5. SKBR3.txt"
+                    putStrLn "6. SKBR3-ext.txt"
+                    putStr "\nSélectionnez un fichier de réactions en entrant le numéro correspondant : "
+                    choix <- getCustomLine
+                    let fichierReactions = case choix of
+                            "1" -> "./data/HCC1954.txt"
+                            "2" -> "./data/HCC1954-ext.txt"
+                            "3" -> "./data/BT474.txt"
+                            "4" -> "./data/BT474-ext.txt"
+                            "5" -> "./data/SKBR3.txt"
+                            "6" -> "./data/SKBR3-ext.txt"
+                            _ -> "./data/HCC1954.txt" -- Default to HCC1954.txt if invalid choice
+                    putStrLn $ "\nUtilisation du fichier : " ++ fichierReactions
                     generateur <- chargerGenerateur "./data/generateur.txt"
-                    reactions <- chargerReactions "./data/HCC1954.txt"
+                    reactions <- chargerReactions fichierReactions
                     entites <- chargerEntites "./data/entites.txt"
-                    putStrLn "Fichiers chargés avec succès 🎉🎉🎊🎊"
+                    putStrLn "\nFichiers chargés avec succès 🎉🎉🎊🎊"
                     return (generateur, reactions, entites)
                 "n" -> do
                     putStrLn "\nExample de la chemin vers votre fichier est : ./data/fichier.txt"
