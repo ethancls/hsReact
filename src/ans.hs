@@ -71,27 +71,6 @@ reacChaine g reactions = processusRec [] g reactions
 --    *********************** PROCESSUS REC ***********************
 
 -- Fonction qui génère les séquences possibles via des listes
-{-afficherTousCasLst :: Generateur -> [Reaction] -> Integer -> IO [[Sequence]]
-afficherTousCasLst generateur reactions profondeur = afficherTousCasLstAux generateur reactions profondeur 1 [[]] []
-  where
-    afficherTousCasLstAux generateur reactions profondeur currentDepth previousRes acc
-      | currentDepth >= profondeur = return acc
-      | otherwise = do
-          putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
-          putStrLn $ "   > Input  :" ++ show previousRes
-          let currentResTemp = verifSysteme previousRes reactions -- On applique les réactions sur les séquences
-          putStrLn $ "   > Output :" ++ show currentResTemp
-          let currentRes = [g : res | res <- currentResTemp, g <- generateur]
-          putStrLn $ "   > Leafs  :" ++ show currentRes
-          let newAcc = if supDoublons acc currentRes == [] then acc else acc ++ [supDoublons acc currentRes] -- On ajoute les nouvelles séquences dans le acc en vérifiant les doublons
-          putStrLn $ "   > Res    :" ++ show newAcc
-          putStrLn "\n"
-          if acc == newAcc
-            then do
-              putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
-              return acc
-            else afficherTousCasLstAux generateur reactions profondeur (currentDepth + 1) currentRes newAcc-}
-
 afficherTousCasLst :: [Generateur] -> [Reaction] -> IO [[Sequence]]
 afficherTousCasLst generateur reactions = afficherTousCasLstAux generateur reactions 1 [[]] []
   where
