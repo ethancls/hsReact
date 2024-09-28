@@ -285,14 +285,15 @@ hsreact = do
 
   putStrLn "\n                ------- VERIFICATION PHI -------\n"
 
-  let phi = "egf ^ ! erk12"
+  let phi = "(! akt)^(! e)"
   putStrLn $ "Proposition : " ++ show phi
+  print $ parsePhi phi
   putStrLn "Il y a au moins un etat au cours de l'execution qui verifie la proposition"
   print $ eventually (parsePhi phi) result 
   putStrLn "Tous les etats au cours de l'execution verifient la proposition"
   print $ always (parsePhi phi) result
-  putStrLn "On a egf jusqu'a ce que l'entite erk12 soit produite"
-  print $ untilP (parsePhi "egf") (parsePhi "erk12") result
+  putStrLn "On a au moisn un p70s6k jusqu'a ce que l'entite mtor soit produite"
+  print $ untilP (parsePhi "p70s6k") (parsePhi "mtor") result
   
   putStrLn "\n    [FIN DU PROGRAMME]\n"
 
