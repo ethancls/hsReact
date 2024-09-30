@@ -1,0 +1,1 @@
+And (Not (Var "akt")) (Not (Var "erk12"))

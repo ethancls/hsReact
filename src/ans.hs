@@ -285,7 +285,9 @@ hsreact = do
 
   putStrLn "\n                ------- VERIFICATION PHI -------\n"
 
-  let phi = "(! akt)^(! e)"
+  file_phi <- readFile "./data/phi.txt"
+  let contenu = filter (/= '\\') file_phi
+  let phi = contenu
   putStrLn $ "Proposition : " ++ show phi
   print $ parsePhi phi
   putStrLn "Il y a au moins un etat au cours de l'execution qui verifie la proposition"
