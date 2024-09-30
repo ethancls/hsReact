@@ -374,6 +374,7 @@ hsreact = do
 
     putStrLn "\n                ------- VERIFICATION PHI -------\n"
 
+<<<<<<< HEAD
     -- let phi = "(! akt)^(! e)"
     let phi = "egf ^ ! erk12"
     putStrLn $ "Proposition : " ++ show phi
@@ -386,6 +387,21 @@ hsreact = do
     print $ untilP (parsePhi "p70s6k") (parsePhi "mtor") result
 
     putStrLn "\n    [FIN DU PROGRAMME]\n\n\n"
+=======
+  file_phi <- readFile "./data/phi.txt"
+  let contenu = filter (/= '\\') file_phi
+  let phi = contenu
+  putStrLn $ "Proposition : " ++ show phi
+  print $ parsePhi phi
+  putStrLn "Il y a au moins un etat au cours de l'execution qui verifie la proposition"
+  print $ eventually (parsePhi phi) result 
+  putStrLn "Tous les etats au cours de l'execution verifient la proposition"
+  print $ always (parsePhi phi) result
+  putStrLn "On a au moisn un p70s6k jusqu'a ce que l'entite mtor soit produite"
+  print $ untilP (parsePhi "p70s6k") (parsePhi "mtor") result
+  
+  putStrLn "\n    [FIN DU PROGRAMME]\n"
+>>>>>>> main
 
 --    *********************** TESTS ***********************
 
