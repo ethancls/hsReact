@@ -255,7 +255,7 @@ always phi = all (all (testProp phi))
 -- Fonction pour vérifier si une entité est produite jusqu'à ce qu'une autre entité soit produite
 untilP :: Phi -> Phi -> [[Sequence]] -> Bool
 untilP phi1 phi2 sequences =
-    let hold = eventually phi1 sequences
+    let hold = always phi1 sequences
         remain = eventually phi2 sequences
      in hold && remain
 
@@ -378,12 +378,12 @@ hsreact = do
     let phi = "egf ^ ! erk12"
     putStrLn $ "Proposition : " ++ show phi
     print $ parsePhi phi
-    putStrLn "\nIl y a au moins un etat au cours de l'execution qui verifie la proposition"
+    putStrLn "\nIl y a au moins un etat au cours de l'execution qui verifie la proposition > ◇φ"
     print $ eventually (parsePhi phi) result
-    putStrLn "\nTous les etats au cours de l'execution verifient la proposition"
+    putStrLn "\nTous les etats au cours de l'execution verifient la proposition > □φ"
     print $ always (parsePhi phi) result
-    putStrLn "\nOn a au moisn un p70s6k jusqu'a ce que l'entite mtor soit produite"
-    print $ untilP (parsePhi "p70s6k") (parsePhi "mtor") result
+    putStrLn "\nOn a egf jusqu'a ce que l'entite mtor soit produite > egfUmtor"
+    print $ untilP (parsePhi "egf") (parsePhi "p") result
 
     putStrLn "\n    [FIN DU PROGRAMME]\n\n\n"
 
