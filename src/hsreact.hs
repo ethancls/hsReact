@@ -1,6 +1,6 @@
 {-
 
-    ******************* SYSTÈME DE RÉACTION ******************
+    ******************* SYSTÈME DE RÉACTION 🧪 ******************
 
 \$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
 \$ D.PALAHIN 12106973 dmytro.palahin@edu.univ-paris13.fr
@@ -46,7 +46,13 @@ verifEntite entite sequence reactions =
 verifSequence :: Sequence -> [Reaction] -> Sequence
 verifSequence sequence reactions = nub $ concatMap (\entite -> verifEntite entite sequence reactions) sequence
 
--- Verifier une liste de séquence
+-- *********************** FONCTION POUR VERIFIER UNE LISTE DE SEQUENCE Ci ***********************
+
+-- Verifier une liste de séquences Ci
+-- Exemple :
+-- ghci> verifSysteme betaSequence alphaSystem
+-- [["erbb1","erk12"],["erk12"],["p70s6k","erbb1","erk12"],["c"]]
+
 verifSysteme :: [Sequence] -> [Reaction] -> [Sequence]
 verifSysteme sequences reactions =
     [verifSequence sequence reactions | sequence <- sequences]
@@ -55,9 +61,10 @@ verifSysteme sequences reactions =
 
 -- Fonction pour générer tous les produits possibles de la réaction en chaine d'un generateur
 -- Exemple :
--- recUnique ["egf"] alphaSystem
+-- reacChaine ["egf"] alphaSystem
 -- [["erbb1","erk12"],["p70s6k"]]
 -- egf crée erbb1 et erk12 puis erk12 crée p70s6k
+
 reacChaine :: Generateur -> [Reaction] -> [Sequence]
 reacChaine g reactions = processusRec [] g reactions
   where
@@ -74,10 +81,10 @@ reacChaine g reactions = processusRec [] g reactions
 --    *********************** PROCESSUS REC ***********************
 
 -- Fonction qui génère les séquences possibles via des listes
-afficherTousCasLst :: [Generateur] -> [Reaction] -> IO [[Sequence]]
-afficherTousCasLst generateur reactions = afficherTousCasLstAux generateur reactions 1 [[]] []
+recK :: [Generateur] -> [Reaction] -> IO [[Sequence]]
+recK generateur reactions = recKAux generateur reactions 1 [[]] []
   where
-    afficherTousCasLstAux generateur reactions currentDepth previousRes acc = do
+    recKAux generateur reactions currentDepth previousRes acc = do
         putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
         putStrLn $ "   > Input  :" ++ show previousRes
         let currentResTemp = verifSysteme previousRes reactions -- On applique les réactions sur les séquences
@@ -91,7 +98,7 @@ afficherTousCasLst generateur reactions = afficherTousCasLstAux generateur react
             then do
                 putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
                 return acc
-            else afficherTousCasLstAux generateur reactions (currentDepth + 1) currentRes newAcc
+            else recKAux generateur reactions (currentDepth + 1) currentRes newAcc
 
 -- Fonction pour éliminer les doublons dans acc
 supDoublons :: (Eq a) => [[[a]]] -> [[a]] -> [[a]]
@@ -122,7 +129,7 @@ groupByDepth xs =
     let (first, rest) = span ((== head (map length xs)) . length) xs
      in first : groupByDepth rest
 
--- Fonction pour afficher la liste de afficherTousCasLst sous forme d'arbre
+-- Fonction pour afficher la liste de recK sous forme d'arbre
 afficherListeEnArbre :: [[Sequence]] -> IO ()
 afficherListeEnArbre sequences = do
     let arbre = convertirEnArbre sequences
@@ -258,6 +265,7 @@ untilP phi1 phi2 sequences =
      in hold && remain
 
 --    *********************** MAIN ***********************
+
 hsreact :: IO ()
 hsreact = do
     putStrLn
@@ -341,7 +349,7 @@ hsreact = do
 
     putStrLn "\n                ------- CREATION DE L'ARBRE -------\n"
 
-    result <- afficherTousCasLst generateur reactions
+    result <- recK generateur reactions
 
     putStrLn "\n\nAfficher les etats ? (y/n)"
     reponse <- getCustomLine
