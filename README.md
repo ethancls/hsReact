@@ -282,6 +282,10 @@ Reaction Systems](./paper.pdf) et aux fichiers `cases-studies` du système [ccRe
 Pour les fichiers short-term, nous avons utilisé les stimulis **egf**, **hrg** et drogues **e**, **p**, **t**. Nous avons testé toutes les combinaisons de stimulis et de drogues (**empty** également) et avons obtenu les mêmes résultats (dans **generateur.txt**, on entre la combinaison par exemple **"egf,hrg,e,t"** et on teste sur tous les fichiers **short-term**).
 Pour les **long-term**, on doit utiliser le stimulis **"s"** et ajouter les drogues de la même façon.
 
+### ⚠️ Modifications des fichiers de tests
+
+Si vous souhaitez modifier les fichiers d'entités, de générateurs, de propositions (phi) ou des reactions customs, veillez à ne pas laisser d'espace entre les termes et les `,` et `;`. Pour les propositions vous pourrez utiliser des parenthèses pour définir des imbrications, et avez `!` pour la **négation**, le `^` pour la **conjonction** et `v` pour le **disjonction**.
+
 ### 6. Langage propositionnel
 
 Pour étendre notre système, nous avons mis en place un langage propositionnel permettant de formuler des hypothèses et des tests sur les entités produites au sein des systèmes de réaction.
