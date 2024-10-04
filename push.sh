@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Navigate to the repository directory
-cd /Users/ethan/Documents/GitHub/ReactionsSystems
-
 # Add all changes
 git add .
 
