@@ -111,7 +111,7 @@ recK generateur reactions = recKAux generateur reactions 1 [[]] []
         putStrLn "\n"
         if acc == newAcc
             then do
-                putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
+                putStrLn ("🎉😎👍👌 Stabilisation du système à la profondeur : " ++ show currentDepth)
                 return acc
             else recKAux generateur reactions (currentDepth + 1) currentRes newAcc
 
@@ -267,7 +267,7 @@ tokenize (c : cs)
 
 -- Fonction auxiliaire pour parser
 parseExpr :: [String] -> (Phi, [String])
-parseExpr [] = error "Invalid format"
+parseExpr [] = error "❌ Format invalide"
 parseExpr tokens = parseOr tokens
 
 -- Fonction pour parser les opérateurs OR
@@ -299,15 +299,15 @@ parseNot tokens = parseTerm tokens
 
 -- Fonction auxiliaire pour parser un terme
 parseTerm :: [String] -> (Phi, [String])
-parseTerm [] = error "Invalid format"
+parseTerm [] = error "❌ Format invalide"
 parseTerm ("(" : xs) =
     let (e, rest) = parseExpr xs
      in case rest of
             (")" : rest') -> (e, rest')
-            _ -> error "Mismatched parentheses"
+            _ -> error "❌ Parenthèses non appariées"
 parseTerm (x : xs)
     | isAlphaNum (head x) = (Var x, xs)
-    | otherwise = error "Invalid format"
+    | otherwise = error "❌ Format invalide"
 
 -- Fonction pour vérifier si une entité est éventuellement produite dans une séquence
 eventually :: Phi -> [[Sequence]] -> Bool
@@ -407,18 +407,18 @@ hsreact = do
     reponse <- getCustomLine
     if reponse == "y"
         then do
-            putStrLn "\n                    ------- GENERATEUR -------\n"
+            putStrLn "\n                    ------- 🚀 GENERATEUR -------\n"
             print generateur
-            putStrLn "\n                    ------- REACTIONS -------\n"
+            putStrLn "\n                    ------- 🧪 REACTIONS -------\n"
             mapM_ print reactions
-            putStrLn "\n                 ------- ENTITES A VERIFIER -------\n"
+            putStrLn "\n                 ------- 🔍 ENTITES A VERIFIER -------\n"
             print entites
         else do
             return ()
 
-    putStrLn "\n    [TRAITEMENT...]\n"
+    putStrLn "\n💪📈    [TRAITEMENT...]\n"
 
-    putStrLn "\n                ------- CREATION DE L'ARBRE -------\n"
+    putStrLn "\n                ------- 🌳🌳 CREATION DE L'ARBRE -------\n"
 
     result <- recK generateur reactions
 
@@ -426,14 +426,14 @@ hsreact = do
     reponse <- getCustomLine
     if reponse == "y"
         then do
-            putStrLn "\n                  ------- RESULTAT (LISTE) -------\n"
+            putStrLn "\n                  ------- 📋 RESULTAT (LISTE) -------\n"
             print result
-            putStrLn "\n                 ------- RESULTAT (ETAPES) -------\n"
+            putStrLn "\n                 ------- 📊 RESULTAT (ETAPES) -------\n"
             afficherListeEnArbre result
         else do
             return ()
 
-    putStrLn "\n               ------- VERIFICATION ENTITE -------\n"
+    putStrLn "\n               ------- 🔍 VERIFICATION ENTITE -------\n"
 
     let maxLength = maximum (map length entites)
 
@@ -442,14 +442,14 @@ hsreact = do
             let presence = presenceEntite entite result
                 message =
                     if presence
-                        then "est présente"
-                        else "n'est pas présente"
+                        then "✅ est présente"
+                        else "🚫 n'est pas présente"
                 paddedEntite = entite ++ replicate (maxLength - length entite) ' '
              in putStrLn $ paddedEntite ++ " --> " ++ message
         )
         entites
 
-    putStrLn "\n                ------- VERIFICATION PHI -------\n"
+    putStrLn "\n                ------- 🔍 VERIFICATION PHI -------\n"
 
     -- let phi = "(! akt)^(! e)"
     let phi = "egf ^ !erk12"
