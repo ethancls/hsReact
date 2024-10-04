@@ -276,5 +276,59 @@ Vous aurez alors la possibilité de choisir parmi des ensembles de données plus
 Nous avons effectués nos tests par rapport à la page 5 de l'article [ccReact: a Rewriting Framework for the Formal Analysis of
 Reaction Systems](./paper.pdf) et aux fichiers `cases-studies` du système [ccReact](https://github.com/carlosolarte/ccReact) disponible sur GitHub.
 
- stimulis **egf**, **hrg** et drogues **e**, **p**, **t**. Nous avons testé toutes les combinaisons de stimulis et de drogues (**empty** également) et avons obtenu les mêmes résultats. Dans **generateur.txt**, on entre la combinaison par exemple **"egf,hrg,e,t"** et on teste sur les réactions **short-term**.
+Pour les fichiers short-term, nous avons utilisé les stimulis **egf**, **hrg** et drogues **e**, **p**, **t**. Nous avons testé toutes les combinaisons de stimulis et de drogues (**empty** également) et avons obtenu les mêmes résultats (dans **generateur.txt**, on entre la combinaison par exemple **"egf,hrg,e,t"** et on teste sur tous les fichiers **short-term**).
 Pour les **long-term**, on doit utiliser le stimulis **"s"** et ajouter les drogues de la même façon.
+
+### 6. Langage propositionnel
+
+Pour le devoir il nous a été proposé de créer un langage propositionnel de tel manière a tester des hypothèses sur le processus `recK`
+
+Here’s the corrected Markdown version of section 6 without LaTeX-specific commands:
+
+### 6. Langage Propositionnel
+
+Pour étendre notre système, nous avons mis en place un langage propositionnel permettant de formuler des hypothèses et des tests sur les entités produites au sein des systèmes de réaction.
+
+Les propositions `Phi` permettent de vérifier des propositions dans les séquences produites.
+
+#### Définition de Phi
+
+Une expression `Phi` peut être une variable (représentant une entité), une négation, une conjonction, ou une disjonction. Voici comment les formules sont définies :
+
+```haskell
+data Phi = Var Entites | Not Phi | And Phi Phi | Or Phi Phi
+    deriving (Show, Eq)
+```
+
+**Var** représente une entité. Nous pouvons créer des expressions logiques à partir de ces variables. Par exemple, pour exprimer qu’une entité egf est présente et qu’une autre entité erk12 ne l’est pas, nous utilisons l’expression Phi suivante :
+
+```haskell
+let phi = And (Var "egf") (Not (Var "erk12"))
+```
+
+#### Opérateurs logiques
+
+Nous avons également implémenté des fonctions permettant de vérifier les propriétés logiques sur les séquences générées par les systèmes de réaction.
+
+Voici quelques exemples d’opérateurs utilisés pour tester des propriétés :
+
+    • eventually (◇φ -- diamond phi) : vérifie s’il existe un état dans lequel une entité est présente.
+    • always (□φ -- box phi) : vérifie que dans tous les états une entité est présente.
+    • untilP (φ1 U φ2) : vérifie que φ1 est vrai jusqu’à ce que φ2 devienne vrai.
+
+#### Exemple d’utilisation du langage propositionnel
+
+Voici un exemple de vérification d’une proposition sur les séquences générées par recK :
+
+```haskell
+let phi = And (Var "egf") (Not (Var "erk12"))
+print $ eventually phi result -- Vérifie s'il existe un état où "egf" est présent et "erk12" est absent sur le resultat de la fonction recK
+```
+
+Pour utiliser dans le programme, on modifie le fichier `phi.txt` dans le dossier `data`. Cette proposition sera testée avec tous les opérateurs disponibles (◇φ, □φ). Pour φ1 U φ2, dans la fonction `hsreact` dans le fichier source Haskell vous pouvez modifier la ligne **417**  `print $ untilP (parsePhi "egf") (parsePhi "p") result` en remplaçant egf et p par d'autres propositions Phi.
+
+Concernant la **Q.6**, la combinaison **◇□e** et **□◇e** représenterespectivement qu'il existe un état dans la séquence où, à partir de cet état, la propriété e est toujours vraie et la deuxième, signifie que pour chaque état dans la séquence, il existe un état futur où la propriété e est vraie.
+
+## 🖌️ Conclusion
+
+a finir et a traduire en anglais, finir la lecture de phi.txt et enlever le parser de ^ et !
