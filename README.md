@@ -1,6 +1,8 @@
-# 🧪 Système de Réaction 🧪
+# 🧪 Systèmes de Réactions en Haskell 🧪
 
-## 🚀 Projet Système de Réaction
+![alt text](hsreact.png)
+
+## 🚀 Projet
 
 Bienvenue dans le mini-projet **Système de Réaction** développé par **Ethan Nicolas** et **Dmytro Palahin** basé sur les recherches de notre professeur **Carlos Olarte**. Ce projet vise à modéliser et analyser des systèmes de réaction chimique en utilisant des séquences d'entités et des réactions définies.
 
