@@ -328,4 +328,4 @@ Concernant la **Q.6**, la combinaison **◇□e** et **□◇e** représente res
 
 ## 🖌️ Conclusion
 
-En conclusion, ce projet représente une avancée significative dans la modélisation et l'analyse des systèmes de réaction chimique. Il offre des outils puissants pour la vérification logique et la visualisation des séquences générées, tout en restant flexible et extensible pour répondre aux besoins futurs. Nous espérons que ce projet servira de base pour de futures recherches et applications pratiques dans ce domaine fascinant.
+En conclusion, ce projet représente une belle modélisation et analyse des systèmes de réactions. Il offre des outils puissants pour la vérification logique et la visualisation des séquences générées, tout en restant flexible et extensible pour répondre aux besoins futurs. Nous espérons que ce projet servira de base pour de futures recherches et applications pratiques dans ce domaine fascinant.
