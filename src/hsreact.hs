@@ -12,7 +12,7 @@
 import Control.Exception (IOException, catch, try)
 import Control.Monad (when)
 import Data.Char (isAlphaNum, isSpace)
-import Data.List (nub, tails)
+import Data.List (nub, tails, transpose)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, hSetEcho, stdin)
 
 --    *********************** TYPES ***********************
@@ -342,6 +342,78 @@ afficherModif :: Bool -> IO ()
 afficherModif True = putStrLn "✅ Vrai"
 afficherModif False = putStrLn "❌ Faux"
 
+-- Utilisation des résultats de TP2 pour afficher les réactions
+-- En-têtes des colonnes pour les réactions
+entetesReactions :: [String]
+entetesReactions = ["Reactifs", "Inhibiteurs", "Produits"]
+
+-- Fonction pour obtenir la longueur des chaînes
+obtenirLongueurs :: [String] -> [Int]
+obtenirLongueurs = map length
+
+-- Fonction pour obtenir la longueur des chaînes dans une liste 2D
+obtenirLongueurs2D :: [[String]] -> [[Int]]
+obtenirLongueurs2D = map obtenirLongueurs
+
+-- Fonction pour obtenir le maximum d'une liste générique
+maxListeGen :: (Ord a) => [a] -> a
+maxListeGen (x : xs) = foldl (\acc x -> max x acc) x xs
+
+-- Fonction pour obtenir les longueurs maximales des colonnes
+maxLongueursColonnes :: [[String]] -> [Int]
+maxLongueursColonnes lst = map maxListeGen (transpose (obtenirLongueurs2D lst))
+
+-- Fonction pour convertir une réaction en une liste de chaînes
+reactionEnListe :: Reaction -> [String]
+reactionEnListe (Reaction reactifs inhibiteurs produits) =
+    [unwords reactifs, unwords inhibiteurs, unwords produits]
+
+-- Fonction pour ajouter des espaces pour l'alignement
+ajouterEspaces :: String -> Int -> String -> String
+ajouterEspaces str n pos
+    | pos == "gauche" = str ++ replicate delta ' '
+    | pos == "droite" = replicate delta ' ' ++ str
+    | pos == "centre" = replicate nbGauche ' ' ++ str ++ replicate nbDroite ' '
+    | otherwise = error "Argument de position invalide! Utilisez 'gauche', 'droite' ou 'centre'"
+  where
+    delta = n - length str
+    nbGauche = delta `div` 2
+    nbDroite = delta - nbGauche
+
+-- Fonction pour formater l'en-tête
+formaterEntete :: [String] -> [Int] -> String
+formaterEntete entetes longueurs = concat ["| " ++ ajouterEspaces entete longueur "centre" ++ " " | (entete, longueur) <- zip entetes longueurs] ++ "|"
+
+-- Fonction pour formater une ligne
+formaterLigne :: [String] -> [Int] -> String
+formaterLigne ligne longueurs = concat ["| " ++ ajouterEspaces champ longueur "centre" ++ if i == length ligne - 1 then "" else " " | (champ, longueur, i) <- zip3 ligne longueurs [0 ..]] ++ " |\n"
+
+-- Fonction pour formater les informations
+formaterInfos :: [[String]] -> [Int] -> String
+formaterInfos infos longueurs = concatMap (`formaterLigne` longueurs) infos
+
+-- Fonction pour générer une ligne de tirets
+genererLigneTirets :: Int -> String
+genererLigneTirets n = " " ++ replicate n '-' ++ " "
+
+-- Fonction pour générer les séparateurs
+genererSeparateurs :: [Int] -> String
+genererSeparateurs lst = "| " ++ foldl (\acc x -> acc ++ replicate x '-' ++ " + ") [] (init lst) ++ replicate (last lst) '-' ++ " |"
+
+-- Fonction pour formater les réactions
+afficherReactions :: [Reaction] -> IO ()
+afficherReactions reactions =
+    let donneesReactions = map reactionEnListe reactions
+        longueursMax = maxLongueursColonnes (entetesReactions : donneesReactions)
+        longueurTotale = length (formaterEntete entetesReactions longueursMax) - 1
+     in do
+            putStrLn (genererLigneTirets longueurTotale)
+            putStrLn (formaterEntete entetesReactions longueursMax)
+            putStrLn (genererSeparateurs longueursMax)
+            putStr (formaterInfos donneesReactions longueursMax)
+            putStrLn (genererLigneTirets longueurTotale)
+            putStrLn ""
+
 --    *********************** MAIN ***********************
 
 hsreact :: IO ()
@@ -418,7 +490,8 @@ hsreact = do
                     putStrLn "\n                    ------- 🚀 GENERATEUR -------\n"
                     print generateur
                     putStrLn "\n                    ------- 🧪 REACTIONS -------\n"
-                    mapM_ print reactions
+                    -- mapM_ print reactions
+                    afficherReactions reactions
                     putStrLn "\n                 ------- 🔍 ENTITES A VERIFIER -------\n"
                     print entites
                 "n" -> return ()
