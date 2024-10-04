@@ -282,12 +282,6 @@ Pour les **long-term**, on doit utiliser le stimulis **"s"** et ajouter les drog
 
 ### 6. Langage propositionnel
 
-Pour le devoir il nous a été proposé de créer un langage propositionnel de tel manière a tester des hypothèses sur le processus `recK`
-
-Here’s the corrected Markdown version of section 6 without LaTeX-specific commands:
-
-### 6. Langage Propositionnel
-
 Pour étendre notre système, nous avons mis en place un langage propositionnel permettant de formuler des hypothèses et des tests sur les entités produites au sein des systèmes de réaction.
 
 Les propositions `Phi` permettent de vérifier des propositions dans les séquences produites.
@@ -314,8 +308,8 @@ Nous avons également implémenté des fonctions permettant de vérifier les pro
 Voici quelques exemples d’opérateurs utilisés pour tester des propriétés :
 
 ```haskell
-   • eventually (◇φ -- diamond phi) : vérifie s’il existe un état dans lequel une entité est présente.
-   • always (□φ -- box phi) : vérifie que dans tous les états une entité est présente.
+   • eventually (◇φ) -- diamond phi : vérifie s’il existe un état dans lequel une entité est présente.
+   • always (□φ) -- box phi : vérifie que dans tous les états une entité est présente.
    • untilP (φ1 U φ2) : vérifie que φ1 est vrai jusqu’à ce que φ2 devienne vrai.
 ```
 
@@ -330,8 +324,8 @@ print $ eventually phi result -- Vérifie s'il existe un état où "egf" est pr�
 
 Pour utiliser dans le programme, on modifie le fichier `phi.txt` dans le dossier `data`. Cette proposition sera testée avec tous les opérateurs disponibles (◇φ, □φ). Pour φ1 U φ2, dans la fonction `hsreact` dans le fichier source Haskell vous pouvez modifier la ligne **417**  `print $ untilP (parsePhi "egf") (parsePhi "p") result` en remplaçant egf et p par d'autres propositions Phi.
 
-Concernant la **Q.6**, la combinaison **◇□e** et **□◇e** représenterespectivement qu'il existe un état dans la séquence où, à partir de cet état, la propriété e est toujours vraie et la deuxième, signifie que pour chaque état dans la séquence, il existe un état futur où la propriété e est vraie.
+Concernant la **Q.6**, la combinaison **◇□e** et **□◇e** représente respectivement qu'il existe un état dans la séquence où, à partir de cet état, la propriété e est toujours vraie et la deuxième, signifie que pour chaque état dans la séquence, il existe un état futur où la propriété e est vraie.
 
 ## 🖌️ Conclusion
 
-a finir et a traduire en anglais, finir la lecture de phi.txt et enlever le parser de ^ et !
+En conclusion, ce projet représente une avancée significative dans la modélisation et l'analyse des systèmes de réaction chimique. Il offre des outils puissants pour la vérification logique et la visualisation des séquences générées, tout en restant flexible et extensible pour répondre aux besoins futurs. Nous espérons que ce projet servira de base pour de futures recherches et applications pratiques dans ce domaine fascinant.
