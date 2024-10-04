@@ -138,7 +138,6 @@ convertirEnArbre [] = Feuille []
 convertirEnArbre (x : xs) = Noeud x (map convertirEnArbre (grouperParProfondeur xs))
 
 -- Fonction pour grouper les séquences par profondeur
--- Fonction pour grouper les séquences par profondeur
 grouperParProfondeur :: [[Sequence]] -> [[[Sequence]]]
 grouperParProfondeur [] = []
 grouperParProfondeur xs =
@@ -176,7 +175,7 @@ chargerReactions path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier de réactions --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier de réactions:"
-            newPath <- notreLireLigne
+            newPath <- myGetLine
             chargerReactions newPath -- Recursive call to retry with a new path
         Right content -> return $ map parserReaction (lines content)
 
@@ -188,7 +187,7 @@ chargerGenerateur path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier de générateur --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier de générateur:"
-            newPath <- notreLireLigne
+            newPath <- myGetLine
             chargerGenerateur newPath -- Recursive call to retry with a new path
         Right content -> return $ map (diviser ',') (diviser ';' content)
 
@@ -200,15 +199,15 @@ chargerEntites path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier d'entités --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier d'entités :"
-            newPath <- notreLireLigne
+            newPath <- myGetLine
             chargerEntites newPath -- Recursive call to retry with a new path
         Right content -> return $ diviser ',' (head (lines content))
 
 --    *********************** FONCTION DE LIRE LIGNE AVEC DELETE **********************
 
--- Custom getLine function that handles backspace
-notreLireLigne :: IO String
-notreLireLigne = do
+-- Custom getLine function that handles backspace and carriage return
+myGetLine :: IO String
+myGetLine = do
     hSetEcho stdin False -- Désactiver l'écho
     hSetBuffering stdin NoBuffering -- Désactiver le buffering
     boucle ""
@@ -343,6 +342,7 @@ afficherModif True = putStrLn "✅ Vrai"
 afficherModif False = putStrLn "❌ Faux"
 
 -- Utilisation des résultats de TP2 pour afficher les réactions
+
 -- En-têtes des colonnes pour les réactions
 entetesReactions :: [String]
 entetesReactions = ["Reactifs", "Inhibiteurs", "Produits"]
@@ -433,7 +433,7 @@ hsreact = do
 
     let demanderFichiers = do
             putStrLn "Utiliser les fichiers de test par défaut ? (y/n)"
-            reponse <- notreLireLigne
+            reponse <- myGetLine
             case reponse of
                 "y" -> do
                     let askForFileChoice = do
@@ -445,7 +445,7 @@ hsreact = do
                             putStrLn "5. SKBR3.txt"
                             putStrLn "6. SKBR3-ext.txt"
                             putStr "\nSélectionnez un fichier de réactions en entrant le numéro correspondant : "
-                            choix <- notreLireLigne
+                            choix <- myGetLine
                             case choix of
                                 "1" -> return "./data/HCC1954.txt"
                                 "2" -> return "./data/HCC1954-ext.txt"
@@ -466,13 +466,13 @@ hsreact = do
                 "n" -> do
                     putStrLn "\nExample de la chemin vers votre fichier est : ./data/fichier.txt"
                     putStrLn "\nEntrez le chemin du fichier de générateur :"
-                    cheminGenerateur <- notreLireLigne
+                    cheminGenerateur <- myGetLine
                     generateur <- chargerGenerateur cheminGenerateur
                     putStrLn "\nEntrez le chemin du fichier de réactions :"
-                    cheminReactions <- notreLireLigne
+                    cheminReactions <- myGetLine
                     reactions <- chargerReactions cheminReactions
                     putStrLn "\nEntrez le chemin du fichier d'entités à vérifier :"
-                    cheminEntites <- notreLireLigne
+                    cheminEntites <- myGetLine
                     entites <- chargerEntites cheminEntites
                     putStrLn "Fichiers chargés avec succès !"
                     return (generateur, reactions, entites)
@@ -484,7 +484,7 @@ hsreact = do
 
     let demanderDonnes = do
             putStrLn "\n\nAfficher les donnees chargees ? (y/n)"
-            reponse <- notreLireLigne
+            reponse <- myGetLine
             case reponse of
                 "y" -> do
                     putStrLn "\n                    ------- 🚀 GENERATEUR -------\n"
@@ -508,7 +508,7 @@ hsreact = do
 
     let demanderEtat = do
             putStrLn "\n\nAfficher les états ? (y/n)"
-            reponse <- notreLireLigne
+            reponse <- myGetLine
             case reponse of
                 "y" -> do
                     putStrLn "\n                  ------- 📋 RESULTAT (LISTE) -------\n"
@@ -541,7 +541,7 @@ hsreact = do
 
     let demanderPhi = do
             putStrLn "Utiliser le fichier pour expression de phi par défaut ? (y/n)"
-            reponsePhi <- notreLireLigne
+            reponsePhi <- myGetLine
             case reponsePhi of
                 "y" -> do
                     putStrLn "\nUtilisation du fichier : ./data/phi.txt\n"
@@ -551,7 +551,7 @@ hsreact = do
                     examplePhi <- readFile "./data/phi.txt"
                     putStrLn $ "Exemple d'expression pour phi (tiré de ./data/phi.txt) : " ++ head (lines examplePhi)
                     putStrLn "Entrez votre expression pour phi :"
-                    notreLireLigne
+                    myGetLine
                 _ -> do
                     putStrLn "❌ Réponse invalide ! Veuillez répondre par 'y' ou 'n'.\n\n"
                     demanderPhi
@@ -565,15 +565,15 @@ hsreact = do
     afficherModif (always (parsePhi phi) result)
     putStrLn "\n🎯 Maintenant, nous voulons vérifier la proposition > φUφ' (🔍 until)"
     putStr "Entrez votre expression pour φ  (par exemple, egf) : "
-    phi <- notreLireLigne
+    phi <- myGetLine
     putStr "Entrez votre expression pour φ' (par exemple, p)   : "
-    phi_prim <- notreLireLigne
+    phi_prim <- myGetLine
     putStrLn ("\n👉 On a " ++ show phi ++ " jusqu'a ce que l'entite " ++ show phi_prim ++ " soit produite")
     afficherModif (untilP (parsePhi phi) (parsePhi phi_prim) result)
 
     putStrLn "\n🎯 Maintenant, nous voulons vérifier la proposition imbriquée > ◇□e 👀💡 et > □◇e 💡👀"
     putStr "Entrez votre expression pour (par exemple, egf) : "
-    expression <- notreLireLigne
+    expression <- myGetLine
     putStrLn ("\n👉 Proposition : ◇□" ++ show expression ++ " représente qu'il existe un état dans la séquence où, à partir de cet état, la propriété " ++ show expression ++ " est toujours vraie")
     afficherModif (eventuallyAlways (parsePhi expression) result)
     putStrLn ("\n👉 Proposition : □◇" ++ show expression ++ " signifie que pour chaque état dans la séquence, il existe un état futur où la propriété " ++ show expression ++ " est vraie")

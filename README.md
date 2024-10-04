@@ -1,6 +1,6 @@
 # 🧪 Systèmes de Réactions en Haskell 🧪
 
-![alt text](hsreact.png)
+![alt text](./utils/hsreact.png)
 
 ## 🚀 Projet
 
