@@ -135,14 +135,15 @@ printArbreComplet (Noeud val enfants) indent = do
 -- Fonction pour convertir la liste de séquences en arbre
 convertirEnArbre :: [[Sequence]] -> Arbre [Sequence]
 convertirEnArbre [] = Feuille []
-convertirEnArbre (x : xs) = Noeud x (map convertirEnArbre (groupByDepth xs))
+convertirEnArbre (x : xs) = Noeud x (map convertirEnArbre (grouperParProfondeur xs))
 
 -- Fonction pour grouper les séquences par profondeur
-groupByDepth :: [[Sequence]] -> [[[Sequence]]]
-groupByDepth [] = []
-groupByDepth xs =
-    let (first, rest) = span ((== head (map length xs)) . length) xs
-     in first : groupByDepth rest
+-- Fonction pour grouper les séquences par profondeur
+grouperParProfondeur :: [[Sequence]] -> [[[Sequence]]]
+grouperParProfondeur [] = []
+grouperParProfondeur xs =
+    let (premier, reste) = span ((== head (map length xs)) . length) xs
+     in premier : grouperParProfondeur reste
 
 -- Fonction pour afficher la liste de recK sous forme d'arbre
 afficherListeEnArbre :: [[Sequence]] -> IO ()
@@ -153,17 +154,17 @@ afficherListeEnArbre sequences = do
 --    *********************** FONCTIONS DE CHARGEMENT FICHIERS ***********************
 
 -- Fonction pour découper une chaîne en fonction d'un séparateur
-split :: Char -> String -> [String]
-split separateur = foldr (\c l -> if c == separateur then [] : l else (c : head l) : tail l) [[]]
+diviser :: Char -> String -> [String]
+diviser separateur = foldr (\c l -> if c == separateur then [] : l else (c : head l) : tail l) [[]]
 
 -- Fonction pour parser une ligne de réaction du fichier
 parserReaction :: String -> Reaction
 parserReaction entree =
     let str = filter (/= '\r') entree -- Supprimer les caractères Windows
-        parties = split ';' str
-        reactifs = split ',' (head parties)
-        inhibiteurs = split ',' (parties !! 1)
-        produits = split ',' (parties !! 2)
+        parties = diviser ';' str
+        reactifs = diviser ',' (head parties)
+        inhibiteurs = diviser ',' (parties !! 1)
+        produits = diviser ',' (parties !! 2)
      in Reaction reactifs inhibiteurs produits
 
 -- Fonction pour charger les réactions depuis un fichier
@@ -175,7 +176,7 @@ chargerReactions path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier de réactions --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier de réactions:"
-            newPath <- getCustomLine
+            newPath <- notreLireLigne
             chargerReactions newPath -- Recursive call to retry with a new path
         Right content -> return $ map parserReaction (lines content)
 
@@ -187,9 +188,9 @@ chargerGenerateur path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier de générateur --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier de générateur:"
-            newPath <- getCustomLine
+            newPath <- notreLireLigne
             chargerGenerateur newPath -- Recursive call to retry with a new path
-        Right content -> return $ map (split ',') (split ';' content)
+        Right content -> return $ map (diviser ',') (diviser ';' content)
 
 -- Fonction pour charger les entités à vérifier depuis un fichier
 chargerEntites :: FilePath -> IO [Entites]
@@ -199,35 +200,35 @@ chargerEntites path = do
         Left _ -> do
             putStrLn "\n❌Erreur de lecture du fichier d'entités --> aucun fichier ou répertoire de ce nom !"
             putStrLn "Veuillez entrer un chemin valide pour le fichier d'entités :"
-            newPath <- getCustomLine
+            newPath <- notreLireLigne
             chargerEntites newPath -- Recursive call to retry with a new path
-        Right content -> return $ split ',' (head (lines content))
+        Right content -> return $ diviser ',' (head (lines content))
 
 --    *********************** FONCTION DE LIRE LIGNE AVEC DELETE **********************
 
 -- Custom getLine function that handles backspace
-getCustomLine :: IO String
-getCustomLine = do
-    hSetEcho stdin False -- Disable echoing
-    hSetBuffering stdin NoBuffering -- Disable buffering
-    loop ""
+notreLireLigne :: IO String
+notreLireLigne = do
+    hSetEcho stdin False -- Désactiver l'écho
+    hSetBuffering stdin NoBuffering -- Désactiver le buffering
+    boucle ""
   where
-    loop :: String -> IO String
-    loop str = do
+    boucle :: String -> IO String
+    boucle str = do
         char <- getChar
         case char of
             '\n' -> do
-                -- Enter key
+                -- Touche Entrée
                 putChar '\n'
                 return str
             '\DEL' -> do
-                -- Handle delete/backspace
+                -- Gérer la suppression/retour arrière
                 when (not (null str)) $ do
-                    putStr "\b \b" -- Move back, overwrite with space, then move back again
-                loop (if null str then str else init str) -- Remove the last character
+                    putStr "\b \b" -- Reculer, écraser avec un espace, puis reculer à nouveau
+                boucle (if null str then str else init str) -- Supprimer le dernier caractère
             _ -> do
                 putChar char
-                loop (str ++ [char])
+                boucle (str ++ [char])
 
 --   *********************** PROPOSITIONS LOGIQUES ***********************
 
@@ -253,59 +254,59 @@ testProp prop sequence = eval prop (`elem` sequence)
 -- Fonction pour parser une chaîne en une Phi
 parsePhi :: String -> Phi
 parsePhi str =
-    let tokens = tokenize (filter (not . isSpace) str)
-     in fst (parseExpr tokens)
+    let tokens = tokeniser (filter (not . isSpace) str)
+     in fst (parserExpr tokens)
 
 -- Fonction pour diviser la chaîne en tokens manuellement
-tokenize :: String -> [String]
-tokenize [] = []
-tokenize (c : cs)
-    | c `elem` "^v()" = [c] : tokenize cs
-    | c == '!' = ["!"] ++ tokenize cs
-    | isAlphaNum c = let (var, rest) = span isAlphaNum (c : cs) in var : tokenize rest
-    | otherwise = tokenize cs
+tokeniser :: String -> [String]
+tokeniser [] = []
+tokeniser (c : cs)
+    | c `elem` "^v()" = [c] : tokeniser cs
+    | c == '!' = ["!"] ++ tokeniser cs
+    | isAlphaNum c = let (var, rest) = span isAlphaNum (c : cs) in var : tokeniser rest
+    | otherwise = tokeniser cs
 
 -- Fonction auxiliaire pour parser
-parseExpr :: [String] -> (Phi, [String])
-parseExpr [] = error "❌ Format invalide"
-parseExpr tokens = parseOr tokens
+parserExpr :: [String] -> (Phi, [String])
+parserExpr [] = error "❌ Format invalide"
+parserExpr tokens = parserOu tokens
 
 -- Fonction pour parser les opérateurs OR
-parseOr :: [String] -> (Phi, [String])
-parseOr tokens =
-    let (term, rest) = parseAnd tokens
+parserOu :: [String] -> (Phi, [String])
+parserOu tokens =
+    let (term, rest) = parserEt tokens
      in case rest of
             ("v" : xs) ->
-                let (nextTerm, rest') = parseOr xs
+                let (nextTerm, rest') = parserOu xs
                  in (Or term nextTerm, rest')
             _ -> (term, rest)
 
 -- Fonction pour parser les opérateurs AND
-parseAnd :: [String] -> (Phi, [String])
-parseAnd tokens =
-    let (term, rest) = parseNot tokens
+parserEt :: [String] -> (Phi, [String])
+parserEt tokens =
+    let (term, rest) = parserNon tokens
      in case rest of
             ("^" : xs) ->
-                let (nextTerm, rest') = parseAnd xs
+                let (nextTerm, rest') = parserEt xs
                  in (And term nextTerm, rest')
             _ -> (term, rest)
 
 -- Fonction pour parser les opérateurs NOT
-parseNot :: [String] -> (Phi, [String])
-parseNot ("!" : xs) =
-    let (term, rest) = parseTerm xs
+parserNon :: [String] -> (Phi, [String])
+parserNon ("!" : xs) =
+    let (term, rest) = parserTerme xs
      in (Not term, rest)
-parseNot tokens = parseTerm tokens
+parserNon tokens = parserTerme tokens
 
 -- Fonction auxiliaire pour parser un terme
-parseTerm :: [String] -> (Phi, [String])
-parseTerm [] = error "❌ Format invalide"
-parseTerm ("(" : xs) =
-    let (e, rest) = parseExpr xs
+parserTerme :: [String] -> (Phi, [String])
+parserTerme [] = error "❌ Format invalide"
+parserTerme ("(" : xs) =
+    let (e, rest) = parserExpr xs
      in case rest of
             (")" : rest') -> (e, rest')
             _ -> error "❌ Parenthèses non appariées"
-parseTerm (x : xs)
+parserTerme (x : xs)
     | isAlphaNum (head x) = (Var x, xs)
     | otherwise = error "❌ Format invalide"
 
@@ -354,7 +355,7 @@ hsreact = do
 
     let askForFiles = do
             putStrLn "Utiliser les fichiers de test par défaut ? (y/n)"
-            reponse <- getCustomLine
+            reponse <- notreLireLigne
             case reponse of
                 "y" -> do
                     let askForFileChoice = do
@@ -366,7 +367,7 @@ hsreact = do
                             putStrLn "5. SKBR3.txt"
                             putStrLn "6. SKBR3-ext.txt"
                             putStr "\nSélectionnez un fichier de réactions en entrant le numéro correspondant : "
-                            choix <- getCustomLine
+                            choix <- notreLireLigne
                             case choix of
                                 "1" -> return "./data/HCC1954.txt"
                                 "2" -> return "./data/HCC1954-ext.txt"
@@ -387,13 +388,13 @@ hsreact = do
                 "n" -> do
                     putStrLn "\nExample de la chemin vers votre fichier est : ./data/fichier.txt"
                     putStrLn "\nEntrez le chemin du fichier de générateur :"
-                    cheminGenerateur <- getCustomLine
+                    cheminGenerateur <- notreLireLigne
                     generateur <- chargerGenerateur cheminGenerateur
                     putStrLn "\nEntrez le chemin du fichier de réactions :"
-                    cheminReactions <- getCustomLine
+                    cheminReactions <- notreLireLigne
                     reactions <- chargerReactions cheminReactions
                     putStrLn "\nEntrez le chemin du fichier d'entités à vérifier :"
-                    cheminEntites <- getCustomLine
+                    cheminEntites <- notreLireLigne
                     entites <- chargerEntites cheminEntites
                     putStrLn "Fichiers chargés avec succès !"
                     return (generateur, reactions, entites)
@@ -404,7 +405,7 @@ hsreact = do
     (generateur, reactions, entites) <- askForFiles
 
     putStrLn "\n\nAfficher les donnees chargees ? (y/n)"
-    reponse <- getCustomLine
+    reponse <- notreLireLigne
     if reponse == "y"
         then do
             putStrLn "\n                    ------- 🚀 GENERATEUR -------\n"
@@ -423,7 +424,7 @@ hsreact = do
     result <- recK generateur reactions
 
     putStrLn "\n\nAfficher les etats ? (y/n)"
-    reponse <- getCustomLine
+    reponse <- notreLireLigne
     if reponse == "y"
         then do
             putStrLn "\n                  ------- 📋 RESULTAT (LISTE) -------\n"
