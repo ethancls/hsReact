@@ -1,6 +1,6 @@
 {-
 
-    ******************* SYSTÈME DE RÉACTION 🧪 ******************
+    ******************* 🧪 SYSTÈME DE RÉACTION 🧪 ******************
 
 \$ E.NICOLAS 12100466 ethan.bento-nicolas@edu.univ-paris13.fr
 \$ D.PALAHIN 12106973 dmytro.palahin@edu.univ-paris13.fr
@@ -336,6 +336,12 @@ eventuallyAlways phi = any (all (testProp phi))
 alwaysEventually :: Phi -> [[Sequence]] -> Bool
 alwaysEventually phi = all (any (testProp phi))
 
+--    *********************** FONCTIONS D'AFFICHAGE ***********************
+
+afficherModif :: Bool -> IO ()
+afficherModif True = putStrLn "✅ Vrai"
+afficherModif False = putStrLn "❌ Faux"
+
 --    *********************** MAIN ***********************
 
 hsreact :: IO ()
@@ -351,9 +357,9 @@ hsreact = do
             ++ "   > 🥷 ETHAN NICOLAS & 🥷 DMYTRO PALAHIN\n"
             ++ "    > ⏰ 2024\n"
         )
-    putStrLn "\n    [CHARGEMENT...]\n"
+    putStrLn "\n    [⏳⏳ CHARGEMENT...]\n"
 
-    let askForFiles = do
+    let demanderFichiers = do
             putStrLn "Utiliser les fichiers de test par défaut ? (y/n)"
             reponse <- notreLireLigne
             case reponse of
@@ -399,40 +405,48 @@ hsreact = do
                     putStrLn "Fichiers chargés avec succès !"
                     return (generateur, reactions, entites)
                 _ -> do
-                    putStrLn "❌Réponse invalide ! Veuillez répondre par 'y' ou 'n'.\n\n"
-                    askForFiles
+                    putStrLn "❌ Réponse invalide ! Veuillez répondre par 'y' ou 'n'.\n\n"
+                    demanderFichiers
 
-    (generateur, reactions, entites) <- askForFiles
+    (generateur, reactions, entites) <- demanderFichiers
 
-    putStrLn "\n\nAfficher les donnees chargees ? (y/n)"
-    reponse <- notreLireLigne
-    if reponse == "y"
-        then do
-            putStrLn "\n                    ------- 🚀 GENERATEUR -------\n"
-            print generateur
-            putStrLn "\n                    ------- 🧪 REACTIONS -------\n"
-            mapM_ print reactions
-            putStrLn "\n                 ------- 🔍 ENTITES A VERIFIER -------\n"
-            print entites
-        else do
-            return ()
+    let demanderDonnes = do
+            putStrLn "\n\nAfficher les donnees chargees ? (y/n)"
+            reponse <- notreLireLigne
+            case reponse of
+                "y" -> do
+                    putStrLn "\n                    ------- 🚀 GENERATEUR -------\n"
+                    print generateur
+                    putStrLn "\n                    ------- 🧪 REACTIONS -------\n"
+                    mapM_ print reactions
+                    putStrLn "\n                 ------- 🔍 ENTITES A VERIFIER -------\n"
+                    print entites
+                "n" -> return ()
+                _ -> do
+                    putStrLn "❌ Réponse invalide ! Veuillez répondre par 'y' ou 'n'."
+                    demanderDonnes
+    demanderDonnes
 
-    putStrLn "\n💪📈    [TRAITEMENT...]\n"
+    putStrLn "\n    [💪🦾 TRAITEMENT...]\n"
 
     putStrLn "\n                ------- 🌳🌳 CREATION DE L'ARBRE -------\n"
 
     result <- recK generateur reactions
 
-    putStrLn "\n\nAfficher les etats ? (y/n)"
-    reponse <- notreLireLigne
-    if reponse == "y"
-        then do
-            putStrLn "\n                  ------- 📋 RESULTAT (LISTE) -------\n"
-            print result
-            putStrLn "\n                 ------- 📊 RESULTAT (ETAPES) -------\n"
-            afficherListeEnArbre result
-        else do
-            return ()
+    let demanderEtat = do
+            putStrLn "\n\nAfficher les états ? (y/n)"
+            reponse <- notreLireLigne
+            case reponse of
+                "y" -> do
+                    putStrLn "\n                  ------- 📋 RESULTAT (LISTE) -------\n"
+                    print result
+                    putStrLn "\n                 ------- 📊 RESULTAT (ETAPES) -------\n"
+                    afficherListeEnArbre result
+                "n" -> return ()
+                _ -> do
+                    putStrLn "❌ Réponse invalide ! Veuillez répondre par 'y' ou 'n'."
+                    demanderEtat
+    demanderEtat
 
     putStrLn "\n               ------- 🔍 VERIFICATION ENTITE -------\n"
 
@@ -452,24 +466,46 @@ hsreact = do
 
     putStrLn "\n                ------- 🔍 VERIFICATION PHI -------\n"
 
-    -- let phi = "(! akt)^(! e)"
-    let phi = "egf ^ !erk12"
-    putStrLn $ "Proposition : " ++ show phi
-    print $ parsePhi phi
-    putStrLn "\nIl y a au moins un etat au cours de l'execution qui verifie la proposition > ◇φ"
-    print $ eventually (parsePhi phi) result
-    putStrLn "\nTous les etats au cours de l'execution verifient la proposition > □φ"
-    print $ always (parsePhi phi) result
-    putStrLn "\nOn a egf jusqu'a ce que l'entite mtor soit produite > egfUmtor"
-    print $ untilP (parsePhi "egf") (parsePhi "p") result
+    let demanderPhi = do
+            putStrLn "Utiliser le fichier pour expression de phi par défaut ? (y/n)"
+            reponsePhi <- notreLireLigne
+            case reponsePhi of
+                "y" -> do
+                    putStrLn "\nUtilisation du fichier : ./data/phi.txt\n"
+                    content <- readFile "./data/phi.txt"
+                    return (head (lines content))
+                "n" -> do
+                    examplePhi <- readFile "./data/phi.txt"
+                    putStrLn $ "Exemple d'expression pour phi (tiré de ./data/phi.txt) : " ++ head (lines examplePhi)
+                    putStrLn "Entrez votre expression pour phi :"
+                    notreLireLigne
+                _ -> do
+                    putStrLn "❌ Réponse invalide ! Veuillez répondre par 'y' ou 'n'.\n\n"
+                    demanderPhi
 
-    let e = "egf"
-    putStrLn "\nProposition : ◇□ egf"
-    print $ eventuallyAlways (parsePhi e) result
-    putStrLn "\nProposition : □◇ egf"
-    print $ alwaysEventually (parsePhi e) result
+    phi <- demanderPhi
+    putStrLn $ "🔍👀 Proposition        : " ++ show phi
+    putStrLn $ "✨👀 Proposition parsée : " ++ show (parsePhi phi)
+    putStrLn "\n👉 Il y a au moins un état au cours de l'execution qui vérifie la proposition > ◇φ (👀 eventually)"
+    afficherModif (eventually (parsePhi phi) result)
+    putStrLn "\n👉 Tous les états au cours de l'execution vérifient la proposition > □φ (💡 always)"
+    afficherModif (always (parsePhi phi) result)
+    putStrLn "\n🎯 Maintenant, nous voulons vérifier la proposition > φUφ' (🔍 until)"
+    putStr "Entrez votre expression pour φ  (par exemple, egf) : "
+    phi <- notreLireLigne
+    putStr "Entrez votre expression pour φ' (par exemple, p)   : "
+    phi_prim <- notreLireLigne
+    putStrLn ("\n👉 On a " ++ show phi ++ " jusqu'a ce que l'entite " ++ show phi_prim ++ " soit produite")
+    afficherModif (untilP (parsePhi phi) (parsePhi phi_prim) result)
 
-    putStrLn "\n    [FIN DU PROGRAMME]\n\n\n"
+    putStrLn "\n🎯 Maintenant, nous voulons vérifier la proposition imbriquée > ◇□e 👀💡 et > □◇e 💡👀"
+    putStr "Entrez votre expression pour (par exemple, egf) : "
+    expression <- notreLireLigne
+    putStrLn ("\n👉 Proposition : ◇□" ++ show expression ++ " représente qu'il existe un état dans la séquence où, à partir de cet état, la propriété " ++ show expression ++ " est toujours vraie")
+    afficherModif (eventuallyAlways (parsePhi expression) result)
+    putStrLn ("\n👉 Proposition : □◇" ++ show expression ++ " signifie que pour chaque état dans la séquence, il existe un état futur où la propriété " ++ show expression ++ " est vraie")
+    afficherModif (alwaysEventually (parsePhi expression) result)
+    putStrLn "\n\n    [🎬🎬 FIN DU PROGRAMME]\n\n\n"
 
 --    *********************** TESTS ***********************
 
@@ -491,25 +527,3 @@ betaSequence =
     ]
 
 --  FIN DU PROGRAMME
-
--- Exemple d'utilisation
-main :: IO ()
-main = do
-    let phi1 = "egf ^( ! erk12)"
-    let phi2 = "egf ^ !erk12"
-    let phi3 = "egf^!erk12"
-    let phi4 = "((egf^(!erk12)))"
-    let phi5 = "(!egf)^(!erk12)"
-    let phi6 = "(!egf)^((!erk12)v(erbb3))"
-    putStrLn $ "Proposition 1 : " ++ show phi1
-    print $ parsePhi phi1
-    putStrLn $ "\nProposition 2 : " ++ show phi2
-    print $ parsePhi phi2
-    putStrLn $ "\nProposition 3 : " ++ show phi3
-    print $ parsePhi phi3
-    putStrLn $ "\nProposition 4 : " ++ show phi4
-    print $ parsePhi phi4
-    putStrLn $ "\nProposition 5 : " ++ show phi5
-    print $ parsePhi phi5
-    putStrLn $ "\nProposition 6 : " ++ show phi6
-    print $ parsePhi phi6
