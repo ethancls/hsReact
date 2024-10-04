@@ -268,24 +268,46 @@ tokenize (c : cs)
 -- Fonction auxiliaire pour parser
 parseExpr :: [String] -> (Phi, [String])
 parseExpr [] = error "Invalid format"
-parseExpr ("(" : xs) =
+parseExpr tokens = parseOr tokens
+
+-- Fonction pour parser les opérateurs OR
+parseOr :: [String] -> (Phi, [String])
+parseOr tokens =
+    let (term, rest) = parseAnd tokens
+     in case rest of
+            ("v" : xs) ->
+                let (nextTerm, rest') = parseOr xs
+                 in (Or term nextTerm, rest')
+            _ -> (term, rest)
+
+-- Fonction pour parser les opérateurs AND
+parseAnd :: [String] -> (Phi, [String])
+parseAnd tokens =
+    let (term, rest) = parseNot tokens
+     in case rest of
+            ("^" : xs) ->
+                let (nextTerm, rest') = parseAnd xs
+                 in (And term nextTerm, rest')
+            _ -> (term, rest)
+
+-- Fonction pour parser les opérateurs NOT
+parseNot :: [String] -> (Phi, [String])
+parseNot ("!" : xs) =
+    let (term, rest) = parseTerm xs
+     in (Not term, rest)
+parseNot tokens = parseTerm tokens
+
+-- Fonction auxiliaire pour parser un terme
+parseTerm :: [String] -> (Phi, [String])
+parseTerm [] = error "Invalid format"
+parseTerm ("(" : xs) =
     let (e, rest) = parseExpr xs
      in case rest of
             (")" : rest') -> (e, rest')
             _ -> error "Mismatched parentheses"
-parseExpr (")" : _) = error "Mismatched parentheses"
-parseExpr ("!" : xs) =
-    let (e, rest) = parseExpr xs
-     in (Not e, rest)
-parseExpr (x : "^" : xs) =
-    let (e, rest) = parseExpr xs
-     in (And (Var x) e, rest)
-parseExpr (x : "v" : xs) =
-    let (e, rest) = parseExpr xs
-     in (Or (Var x) e, rest)
-parseExpr (x : xs)
+parseTerm (x : xs)
     | isAlphaNum (head x) = (Var x, xs)
-parseExpr _ = error "Invalid format"
+    | otherwise = error "Invalid format"
 
 -- Fonction pour vérifier si une entité est éventuellement produite dans une séquence
 eventually :: Phi -> [[Sequence]] -> Bool
@@ -472,10 +494,12 @@ betaSequence =
 -- Exemple d'utilisation
 main :: IO ()
 main = do
-    let phi1 = "egf ^ ! erk12"
+    let phi1 = "egf ^( ! erk12)"
     let phi2 = "egf ^ !erk12"
     let phi3 = "egf^!erk12"
-    let phi4 = "(((egf)^!erk12))"
+    let phi4 = "((egf^(!erk12)))"
+    let phi5 = "(!egf)^(!erk12)"
+    let phi6 = "(!egf)^((!erk12)v(erbb3))"
     putStrLn $ "Proposition 1 : " ++ show phi1
     print $ parsePhi phi1
     putStrLn $ "\nProposition 2 : " ++ show phi2
@@ -484,3 +508,7 @@ main = do
     print $ parsePhi phi3
     putStrLn $ "\nProposition 4 : " ++ show phi4
     print $ parsePhi phi4
+    putStrLn $ "\nProposition 5 : " ++ show phi5
+    print $ parsePhi phi5
+    putStrLn $ "\nProposition 6 : " ++ show phi6
+    print $ parsePhi phi6
