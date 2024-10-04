@@ -126,7 +126,7 @@ Pour observer le comportement d'un RS lors de l'interaction avec un processus K,
 recK [["egf"]] alphaSystem
 ```
 
-La fonction `recK` nous donne l'avancée d'un RS en interaction avec un processus K, c'est à dire une liste d'entités, de "générateurs". Ces entitées sont modifiables dans le fichier `generateur.txt` sous le dossier **data**. On mets les entités entre `,` si elles sont dans le même `C_i`  sinon on place un `;`. Par exemple : 
+La fonction `recK` nous donne l'avancée d'un RS en interaction avec un processus K, c'est à dire une liste d'entités, de "générateurs". Ces entitées sont modifiables dans le fichier `generateur.txt` sous le dossier **data**. On mets les entités entre `,` si elles sont dans le même `C_i`  sinon on place un `;`. Par exemple :
 
 `recK ((a,b).X c.X) est écrit a,b;c`
 
@@ -226,6 +226,7 @@ Pour vérifier si une entité donnée est produite dans un RS lors de l'interact
 result <- recK [["a", "b", "c"], ["c", "a", "d"]] alphaSystem
 presenceEntite "a" result
 ```
+
 Donne :
 
 ```haskell
@@ -312,9 +313,11 @@ Nous avons également implémenté des fonctions permettant de vérifier les pro
 
 Voici quelques exemples d’opérateurs utilisés pour tester des propriétés :
 
-    • eventually (◇φ -- diamond phi) : vérifie s’il existe un état dans lequel une entité est présente.
-    • always (□φ -- box phi) : vérifie que dans tous les états une entité est présente.
-    • untilP (φ1 U φ2) : vérifie que φ1 est vrai jusqu’à ce que φ2 devienne vrai.
+```haskell
+   • eventually (◇φ -- diamond phi) : vérifie s’il existe un état dans lequel une entité est présente.
+   • always (□φ -- box phi) : vérifie que dans tous les états une entité est présente.
+   • untilP (φ1 U φ2) : vérifie que φ1 est vrai jusqu’à ce que φ2 devienne vrai.
+```
 
 #### Exemple d’utilisation du langage propositionnel
 
