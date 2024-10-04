@@ -11,7 +11,7 @@
 
 import Control.Exception (IOException, catch, try)
 import Control.Monad (when)
-import Data.List (nub)
+import Data.List (nub, tails)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, hSetEcho, stdin)
 
 --    *********************** TYPES ***********************
@@ -45,6 +45,20 @@ verifEntite entite sequence reactions =
 -- Vérifier chaque entité dans la séquence pour voir si elle peut réagir
 verifSequence :: Sequence -> [Reaction] -> Sequence
 verifSequence sequence reactions = nub $ concatMap (\entite -> verifEntite entite sequence reactions) sequence
+
+-- Fonction pour vérifier la présence de cycles dans une liste de séquences
+detectCycle :: (Eq a) => [a] -> Bool
+detectCycle xs = any (\(a, b) -> a == b) [(x, y) | (x : ys) <- tails xs, y <- ys]
+
+-- Fonction principale pour vérifier la stabilisation du RS
+verifStab :: [Generateur] -> [Reaction] -> IO ()
+verifStab generateur reactions = do
+    result <- recK generateur reactions
+    let sequences = concat result
+    let stabilise = detectCycle sequences
+    if stabilise
+        then putStrLn "Le système se stabilise."
+        else putStrLn "Le système ne se stabilise pas."
 
 -- *********************** FONCTION POUR VERIFIER UNE LISTE DE SEQUENCE Ci ***********************
 
@@ -264,6 +278,17 @@ untilP phi1 phi2 sequences =
         remain = eventually phi2 sequences
      in hold && remain
 
+-- eventually always e :
+-- cela signifie qu'il existe un état dans la séquence où, à partir de cet état,
+-- la propriété e est toujours vraie
+eventuallyAlways :: Phi -> [[Sequence]] -> Bool
+eventuallyAlways phi = any (all (testProp phi))
+
+-- always eventually e :
+-- cela signifie que pour chaque état dans la séquence, il existe un état futur où la propriété e est vraie
+alwaysEventually :: Phi -> [[Sequence]] -> Bool
+alwaysEventually phi = all (any (testProp phi))
+
 --    *********************** MAIN ***********************
 
 hsreact :: IO ()
@@ -390,6 +415,12 @@ hsreact = do
     print $ always (parsePhi phi) result
     putStrLn "\nOn a egf jusqu'a ce que l'entite mtor soit produite > egfUmtor"
     print $ untilP (parsePhi "egf") (parsePhi "p") result
+
+    let e = "egf"
+    putStrLn "\nProposition : ◇□ egf"
+    print $ eventuallyAlways (parsePhi e) result
+    putStrLn "\nProposition : □◇ egf"
+    print $ alwaysEventually (parsePhi e) result
 
     putStrLn "\n    [FIN DU PROGRAMME]\n\n\n"
 
