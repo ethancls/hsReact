@@ -1,1 +1,1 @@
-And (Not (Var "akt")) (Not (Var "erk12"))
+(!egf)^((!erk12)v(erbb3))
