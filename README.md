@@ -2,7 +2,7 @@
 
 ## 🚀 Projet Système de Réaction
 
-Bienvenue dans le mini-projet **Système de Réaction** développé par **Ethan Nicolas** et **Dmytro Palahin** basé sur la condition de notre professeur **Carlos Olarte**. Ce projet vise à modéliser et analyser des systèmes de réaction chimique en utilisant des séquences d'entités et des réactions définies.
+Bienvenue dans le mini-projet **Système de Réaction** développé par **Ethan Nicolas** et **Dmytro Palahin** basé sur les recherches de notre professeur **Carlos Olarte**. Ce projet vise à modéliser et analyser des systèmes de réaction chimique en utilisant des séquences d'entités et des réactions définies.
 
 ## 🎯 Table des Matières
 
@@ -50,9 +50,48 @@ Pour installer et exécuter ce projet, suivez les étapes ci-dessous :
 
 ## 📋 Utilisation
 
-### 1. Observer la sortie d'un RS sous une séquence d'entrée donnée
+### 1. Observer la sortie d'un RS avec une liste de séquences d'entrée donnée
 
-Pour observer la sortie d'un système de réaction sous une séquence d'entrée donnée, utilisez la fonction `reacChaine`. Par exemple :
+Pour observer la sortie d'un système de réaction sous une liste de séquences d'entrée donnée, on utilise `verifSysteme`. Par exemple :
+
+```haskell
+verifSysteme betaSequence alphaSystem
+```
+
+où **alphaSystem** est
+
+```haskell
+alphaSystem :: [Reaction]
+alphaSystem =
+    [ Reaction ["egf"] ["e", "p"] ["erbb1"]
+    , Reaction ["egf"] [] ["erk12"]
+    , Reaction ["erk12"] [] ["p70s6k"]
+    , Reaction ["a"] ["b"] ["c"]
+    , Reaction ["c"] ["a"] ["d"]
+    ]
+```
+
+où **betaSequence** est
+
+```haskell
+betaSequence :: [Sequence]
+betaSequence =
+    [ ["egf"]
+    , ["egf", "e"]
+    , ["erk12", "egf"]
+    , ["a", "c"]
+    ]
+```
+
+On obtient l'unique application possible des différentes réactions au système de séquences.
+
+```haskell
+[["erbb1","erk12"],["erk12"],["p70s6k","erbb1","erk12"],["c"]]
+```
+
+### 2. Observer la sortie d'un RS à partir d'une entitée de base et observer la réaction en chaîne
+
+Pour observer la sortie d'un système de réaction sous une entrée donnée et avoir le processus jusqu'à terminaison utilisez la fonction `reacChaine`. Par exemple :
 
 ```haskell
 reacChaine ["egf"] alphaSystem
@@ -77,7 +116,9 @@ et on obtient ce résultat :
 [["erbb1","erk12"],["p70s6k"]]
 ```
 
-### 2. Observer le comportement d'un RS lors de l'interaction avec un processus K
+Ici, `egf` produit `errb1` et `erk12` au premier passage puis on réapplique a ces sorties le RS et on a donc `p70s6k`. Donc avec une entitée de départ on a la liste de toutes les entités possibles que l'ont peut fabriquer. C'est un processus déterministe.
+
+### 3. Observer le comportement d'un RS lors de l'interaction avec un processus K
 
 Pour observer le comportement d'un RS lors de l'interaction avec un processus K, utilisez la fonction `recK`. Par exemple :
 
@@ -85,17 +126,142 @@ Pour observer le comportement d'un RS lors de l'interaction avec un processus K,
 recK [["egf"]] alphaSystem
 ```
 
+La fonction `recK` nous donne l'avancée d'un RS en interaction avec un processus K, c'est à dire une liste d'entités, de "générateurs". Ces entitées sont modifiables dans le fichier `generateur.txt` sous le dossier **data**. On mets les entités entre `,` si elles sont dans le même `C_i`  sinon on place un `;`. Par exemple : 
+
+`recK ((a,b).X c.X) est écrit a,b;c`
+
+#### 🔧 Fonction `recK`
+
+La fonction `recK` est une fonction récursive qui prend en entrée une liste de générateurs (`[Generateur]`) et une liste de réactions (`[Reaction]`). Elle retourne une action IO qui produit une liste de listes de séquences (`IO [[Sequence]]`).
+
+#### Arguments
+
+- **`generateur`** : Une liste de générateurs (`[Generateur]`).
+- **`reactions`** : Une liste de réactions (`[Reaction]`).
+
+#### Fonctionnement
+
+1. **Appel initial** :
+   - `recK` appelle la fonction auxiliaire `recKAux` avec les arguments initiaux, une profondeur initiale de `1`, une liste contenant une liste vide `[[]]` comme résultat précédent, et une liste vide `[]` comme accumulateur.
+
+2. **Fonction auxiliaire `recKAux`** :
+   - **Arguments** :
+     - `generateur` : La liste de générateurs.
+     - `reactions` : La liste de réactions.
+     - `currentDepth` : La profondeur actuelle de la récursion.
+     - `previousRes` : L'output précédent.
+     - `acc` : L'accumulateur des séquences.
+
+   - **Étapes** :
+     1. **Affichage de la profondeur actuelle** :
+
+        ```haskell
+        putStrLn $ "Profondeur " ++ show currentDepth ++ ": \n"
+        ```
+
+     2. **Affichage des séquences d'entrée** :
+
+        ```haskell
+        putStrLn $ "   > Input  :" ++ show previousRes
+        ```
+
+     3. **Application des réactions** :
+        - `verifSysteme` est appelée pour appliquer les réactions sur les séquences précédentes.
+
+        ```haskell
+        let currentResTemp = verifSysteme previousRes reactions
+        ```
+
+     4. **Affichage des séquences de sortie temporaires** :
+
+        ```haskell
+        putStrLn $ "   > Output :" ++ show currentResTemp
+        ```
+
+     5. **Génération des nouvelles séquences** :
+        - Les nouvelles séquences sont générées en combinant chaque générateur avec chaque séquence résultante, c'est ici qu'on applique la récursion en quelque sorte puisque cela permet de créer l'ensemble des combinaisons possibles des entitées générantes.
+
+        ```haskell
+        let currentRes = [g ++ res | res <- currentResTemp, g <- generateur]
+        ```
+
+     6. **Affichage des nouvelles feuilles** :
+
+        ```haskell
+        putStrLn $ "   > Leafs  :" ++ show currentRes
+        ```
+
+     7. **Mise à jour de l'accumulateur** :
+        - Les nouvelles séquences sont ajoutées à l'accumulateur après suppression des doublons (si une entité est présente on à déjà un chemin vers celle-ci donc pas besoin d'un deuxième chemin)
+
+        ```haskell
+        let newAcc = if supDoublons acc currentRes == [] then acc else acc ++ [supDoublons acc currentRes]
+        ```
+
+     8. **Affichage de l'accumulateur mis à jour** :
+
+        ```haskell
+        putStrLn $ "   > Res    :" ++ show newAcc
+        putStrLn "\n"
+        ```
+
+     9. **Vérification de la stabilisation** :
+        - Si l'accumulateur n'a pas changé, le système est considéré comme stabilisé et la profondeur actuelle est affichée sinon l'on passe par une récursion.
+
+        ```haskell
+        if acc == newAcc
+          then do
+            putStrLn ("####### Stabilisation du système à la profondeur : " ++ show currentDepth)
+            return acc
+          else recKAux generateur reactions (currentDepth + 1) currentRes newAcc
+        ```
+
+Supposons que vous ayez une liste de générateurs et de réactions. La fonction [`recK`] appliquera ces réactions de manière récursive sur les séquences générées jusqu'à ce que le système se stabilise, c'est-à-dire que l'accumulateur ne change plus. Le résultat de cette fonction peut donc être infini si le système ne se stabilise pas mais les systèmes de réactions étant fini, l'accumulation de nouvelles entités sera fini engendrant une stabilisation du système (on ne crée plus rien de nouveau).
+
 ### 3. Vérifiez si une entité donnée est produite dans un RS lors de l'interaction avec un processus K
 
-Pour vérifier si une entité donnée est produite dans un RS lors de l'interaction avec un processus K, utilisez la fonction `recK`. Par exemple :
+Pour vérifier si une entité donnée est produite dans un RS lors de l'interaction avec un processus K, utilisez la fonction `recK` puis `presenceEntite` qui renverra un Booléen. Par exemple,
 
 ```haskell
-recK [["a", "b", "c"], ["c", "a", "d"]] alphaSystem
+result <- recK [["a", "b", "c"], ["c", "a", "d"]] alphaSystem
+presenceEntite "a" result
+```
+Donne :
+
+```haskell
+ghci> result <- recK [["a", "b", "c"], ["c", "a", "d"]] alphaSystem
+Profondeur 1: 
+
+   > Input  :[[]]
+   > Output :[[]]
+   > Leafs  :[["a","b","c"],["c","a","d"]]
+   > Res    :[[["a","b","c"],["c","a","d"]]]
+
+
+Profondeur 2: 
+
+   > Input  :[["a","b","c"],["c","a","d"]]
+   > Output :[[],["c"]]
+   > Leafs  :[["a","b","c"],["c","a","d"],["a","b","c","c"],["c","a","d","c"]]
+   > Res    :[[["a","b","c"],["c","a","d"]],[["a","b","c","c"],["c","a","d","c"]]]
+
+
+Profondeur 3: 
+
+   > Input  :[["a","b","c"],["c","a","d"],["a","b","c","c"],["c","a","d","c"]]
+   > Output :[[],["c"],[],["c"]]
+   > Leafs  :[["a","b","c"],["c","a","d"],["a","b","c","c"],["c","a","d","c"],["a","b","c"],["c","a","d"],["a","b","c","c"],["c","a","d","c"]]
+   > Res    :[[["a","b","c"],["c","a","d"]],[["a","b","c","c"],["c","a","d","c"]]]
+
+
+####### Stabilisation du système à la profondeur : 3
+ghci> presenceEntite "a" result
+True
 ```
 
 ### 4. Vérifiez si le RS se stabilise
 
-Pour vérifier si le système de réaction se stabilise, c'est-à-dire s'il existe un cycle où un état est visité une infinité de fois, on peut toujours utiliser la fonction `recK`. Et à la fin, on peut voir à quelle étape notre système se stabilise.
+Pour vérifier si le système de réaction se stabilise, c'est-à-dire s'il existe un cycle où un état est visité une infinité de fois, on peut utilise la fonction `recK`. Et l'on peut voir à quelle étape notre système se stabilise. Voir 3. pour observer une stabilisation. La profondeur 3 n'apporte aucune entitée nouvelle et l'on à donc une stabilisation du système.
 
 ### 5. Résultats avec d'autres données
 
@@ -107,5 +273,8 @@ hsreact
 
 Vous aurez alors la possibilité de choisir parmi des ensembles de données plus volumineux.
 
-Tests effectués par rapport à la **Table 1 [page 5 de paper.pdf]**, stimulis **egf**, **hrg** et drogues **e**, **p**, **t**. Nous avons testé toutes les combinaisons de stimulis et de drogues (**empty** également) et avons obtenu les mêmes résultats. Dans **generateur.txt**, on entre la combinaison par exemple **"egf,hrg,e,t"** et on teste sur les réactions **short-term**.
-Pour les **long-term**, on doit rajouter le composé **"s"** aux stimulis.
+Nous avons effectués nos tests par rapport à la page 5 de l'article [ccReact: a Rewriting Framework for the Formal Analysis of
+Reaction Systems](./paper.pdf) et aux fichiers `cases-studies` du système [ccReact](https://github.com/carlosolarte/ccReact) disponible sur GitHub.
+
+ stimulis **egf**, **hrg** et drogues **e**, **p**, **t**. Nous avons testé toutes les combinaisons de stimulis et de drogues (**empty** également) et avons obtenu les mêmes résultats. Dans **generateur.txt**, on entre la combinaison par exemple **"egf,hrg,e,t"** et on teste sur les réactions **short-term**.
+Pour les **long-term**, on doit utiliser le stimulis **"s"** et ajouter les drogues de la même façon.

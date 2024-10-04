@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%A7%AA-syst%C3%A8me-de-r%C3%A9action-%F0%9F%A7%AA">🧪 Système de Réaction 🧪</h1>
+<h2 id="%F0%9F%9A%80-projet-syst%C3%A8me-de-r%C3%A9action">🚀 Projet Système de Réaction</h2>
+<p>Bienvenue dans le mini-projet <strong>Système de Réaction</strong> développé par <strong>Ethan Nicolas</strong> et <strong>Dmytro Palahin</strong> basé sur les recherches de notre professeur <strong>Carlos Olarte</strong>. Ce projet vise à modéliser et analyser des systèmes de réaction chimique en utilisant des séquences d'entités et des réactions définies.</p>
+<h2 id="%F0%9F%8E%AF-table-des-mati%C3%A8res">🎯 Table des Matières</h2>
+<ol>
+<li>Introduction</li>
+<li>Fonctionnalités</li>
+<li>Installation</li>
+<li>Utilisation</li>
+</ol>
+<h2 id="%F0%9F%8E%AC-introduction">🎬 Introduction</h2>
+<p>Ce projet permet de modéliser des systèmes de réaction chimique et de vérifier diverses propriétés logiques sur les séquences d'entités générées par ces systèmes. Les principales fonctionnalités incluent l'observation des sorties d'un système de réaction (RS), l'interaction avec un processus K, et la vérification de la production d'entités spécifiques.</p>
+<h2 id="%E2%9C%A8-fonctionnalit%C3%A9s">✨ Fonctionnalités</h2>
+<ul>
+<li><strong>🔍 Observation des sorties d'un RS</strong> sous une séquence d'entrée donnée.</li>
+<li><strong>🔁 Interaction avec un processus K</strong> pour observer le comportement d'un RS.</li>
+<li><strong>⚛️ Vérification de la production d'entités</strong> spécifiques dans un RS lors de l'interaction avec un processus K.</li>
+<li><strong>✅ Manipulation de formules logiques</strong> pour vérifier des propriétés complexes sur les séquences d'entités.</li>
+</ul>
+<h2 id="%F0%9F%9A%A7-installation">🚧 Installation</h2>
+<p>Pour installer et exécuter ce projet, suivez les étapes ci-dessous :</p>
+<ol>
+<li>
+<p>Clonez le dépôt :</p>
+<pre class="hljs"><code><div>git <span class="hljs-built_in">clone</span> https://github.com/ethancls/ReactionsSystems.git
+<span class="hljs-built_in">cd</span> ReactionsSystems
+</div></code></pre>
+</li>
+<li>
+<p>Assurez-vous d'avoir GHC (Glasgow Haskell Compiler) installé et GHCI. Vous pouvez l'installer via <a href="https://www.haskell.org/platform/">Haskell Platform</a>.</p>
+</li>
+<li>
+<p>Compilez le projet :</p>
+<pre class="hljs"><code><div>ghci
+:l src/hsreact.hs
+</div></code></pre>
+</li>
+<li>
+<p>Exécutez le programme :</p>
+<pre class="hljs"><code><div>hsreact
+</div></code></pre>
+</li>
+</ol>
+<h2 id="%F0%9F%93%8B-utilisation">📋 Utilisation</h2>
+<h3 id="1-observer-la-sortie-dun-rs-avec-une-liste-de-s%C3%A9quences-dentr%C3%A9e-donn%C3%A9e">1. Observer la sortie d'un RS avec une liste de séquences d'entrée donnée</h3>
+<p>Pour observer la sortie d'un système de réaction sous une liste de séquences d'entrée donnée, on utilise <code>verifSysteme</code>. Par exemple :</p>
+<pre class="hljs"><code><div><span class="hljs-title">verifSysteme</span> betaSequence alphaSystem
+</div></code></pre>
+<p>où <strong>alphaSystem</strong> est</p>
+<pre class="hljs"><code><div><span class="hljs-title">alphaSystem</span> :: [<span class="hljs-type">Reaction</span>]
+<span class="hljs-title">alphaSystem</span> =
+    [ <span class="hljs-type">Reaction</span> [<span class="hljs-string">"egf"</span>] [<span class="hljs-string">"e"</span>, <span class="hljs-string">"p"</span>] [<span class="hljs-string">"erbb1"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"egf"</span>] [] [<span class="hljs-string">"erk12"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"erk12"</span>] [] [<span class="hljs-string">"p70s6k"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"a"</span>] [<span class="hljs-string">"b"</span>] [<span class="hljs-string">"c"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"c"</span>] [<span class="hljs-string">"a"</span>] [<span class="hljs-string">"d"</span>]
+    ]
+</div></code></pre>
+<p>où <strong>betaSequence</strong> est</p>
+<pre class="hljs"><code><div><span class="hljs-title">betaSequence</span> :: [<span class="hljs-type">Sequence</span>]
+<span class="hljs-title">betaSequence</span> =
+    [ [<span class="hljs-string">"egf"</span>]
+    , [<span class="hljs-string">"egf"</span>, <span class="hljs-string">"e"</span>]
+    , [<span class="hljs-string">"erk12"</span>, <span class="hljs-string">"egf"</span>]
+    , [<span class="hljs-string">"a"</span>, <span class="hljs-string">"c"</span>]
+    ]
+</div></code></pre>
+<p>On obtient l'unique application possible des différentes réactions au système de séquences.</p>
+<pre class="hljs"><code><div>[[<span class="hljs-string">"erbb1"</span>,<span class="hljs-string">"erk12"</span>],[<span class="hljs-string">"erk12"</span>],[<span class="hljs-string">"p70s6k"</span>,<span class="hljs-string">"erbb1"</span>,<span class="hljs-string">"erk12"</span>],[<span class="hljs-string">"c"</span>]]
+</div></code></pre>
+<h3 id="2-observer-la-sortie-dun-rs-%C3%A0-partir-dune-entit%C3%A9e-de-base-et-observer-la-r%C3%A9action-en-cha%C3%AEne">2. Observer la sortie d'un RS à partir d'une entitée de base et observer la réaction en chaîne</h3>
+<p>Pour observer la sortie d'un système de réaction sous une entrée donnée et avoir le processus jusqu'à terminaison utilisez la fonction <code>reacChaine</code>. Par exemple :</p>
+<pre class="hljs"><code><div><span class="hljs-title">reacChaine</span> [<span class="hljs-string">"egf"</span>] alphaSystem
+</div></code></pre>
+<p>où <strong>alphaSystem</strong> est</p>
+<pre class="hljs"><code><div><span class="hljs-title">alphaSystem</span> :: [<span class="hljs-type">Reaction</span>]
+<span class="hljs-title">alphaSystem</span> =
+    [ <span class="hljs-type">Reaction</span> [<span class="hljs-string">"egf"</span>] [<span class="hljs-string">"e"</span>, <span class="hljs-string">"p"</span>] [<span class="hljs-string">"erbb1"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"egf"</span>] [] [<span class="hljs-string">"erk12"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"erk12"</span>] [] [<span class="hljs-string">"p70s6k"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"a"</span>] [<span class="hljs-string">"b"</span>] [<span class="hljs-string">"c"</span>]
+    , <span class="hljs-type">Reaction</span> [<span class="hljs-string">"c"</span>] [<span class="hljs-string">"a"</span>] [<span class="hljs-string">"d"</span>]
+    ]
+</div></code></pre>
+<p>et on obtient ce résultat :</p>
+<pre class="hljs"><code><div>[[<span class="hljs-string">"erbb1"</span>,<span class="hljs-string">"erk12"</span>],[<span class="hljs-string">"p70s6k"</span>]]
+</div></code></pre>
+<p>Ici, <code>egf</code> produit <code>errb1</code> et <code>erk12</code> au premier passage puis on réapplique a ces sorties le RS et on a donc <code>p70s6k</code>. Donc avec une entitée de départ on a la liste de toutes les entités possibles que l'ont peut fabriquer. C'est un processus déterministe.</p>
+<h3 id="3-observer-le-comportement-dun-rs-lors-de-linteraction-avec-un-processus-k">3. Observer le comportement d'un RS lors de l'interaction avec un processus K</h3>
+<p>Pour observer le comportement d'un RS lors de l'interaction avec un processus K, utilisez la fonction <code>recK</code>. Par exemple :</p>
+<pre class="hljs"><code><div><span class="hljs-title">recK</span> [[<span class="hljs-string">"egf"</span>]] alphaSystem
+</div></code></pre>
+<p>La fonction <code>recK</code> nous donne l'avancée d'un RS en interaction avec un processus K, c'est à dire une liste d'entités, de &quot;générateurs&quot;. Ces entitées sont modifiables dans le fichier <code>generateur.txt</code> sous le dossier <strong>data</strong>. On mets les entités entre <code>,</code> si elles sont dans le même <code>C_i</code>  sinon on place un <code>;</code>. Par exemple :</p>
+<p><code>recK ((a,b).X c.X) est écrit a,b;c</code></p>
+<h4 id="%F0%9F%94%A7-fonction-reck">🔧 Fonction <code>recK</code></h4>
+<p>La fonction <code>recK</code> est une fonction récursive qui prend en entrée une liste de générateurs (<code>[Generateur]</code>) et une liste de réactions (<code>[Reaction]</code>). Elle retourne une action IO qui produit une liste de listes de séquences (<code>IO [[Sequence]]</code>).</p>
+<h4 id="arguments">Arguments</h4>
+<ul>
+<li><strong><code>generateur</code></strong> : Une liste de générateurs (<code>[Generateur]</code>).</li>
+<li><strong><code>reactions</code></strong> : Une liste de réactions (<code>[Reaction]</code>).</li>
+</ul>
+<h4 id="fonctionnement">Fonctionnement</h4>
+<ol>
+<li>
+<p><strong>Appel initial</strong> :</p>
+<ul>
+<li><code>recK</code> appelle la fonction auxiliaire <code>recKAux</code> avec les arguments initiaux, une profondeur initiale de <code>1</code>, une liste contenant une liste vide <code>[[]]</code> comme résultat précédent, et une liste vide <code>[]</code> comme accumulateur.</li>
+</ul>
+</li>
+<li>
+<p><strong>Fonction auxiliaire <code>recKAux</code></strong> :</p>
+<ul>
+<li>
+<p><strong>Arguments</strong> :</p>
+<ul>
+<li><code>generateur</code> : La liste de générateurs.</li>
+<li><code>reactions</code> : La liste de réactions.</li>
+<li><code>currentDepth</code> : La profondeur actuelle de la récursion.</li>
+<li><code>previousRes</code> : L'output précédent.</li>
+<li><code>acc</code> : L'accumulateur des séquences.</li>
+</ul>
+</li>
+<li>
+<p><strong>Étapes</strong> :</p>
+<ol>
+<li>
+<p><strong>Affichage de la profondeur actuelle</strong> :</p>
+<pre class="hljs"><code><div><span class="hljs-title">putStrLn</span> $ <span class="hljs-string">"Profondeur "</span> ++ show currentDepth ++ <span class="hljs-string">": \n"</span>
+</div></code></pre>
+</li>
+<li>
+<p><strong>Affichage des séquences d'entrée</strong> :</p>
+<pre class="hljs"><code><div><span class="hljs-title">putStrLn</span> $ <span class="hljs-string">"   &gt; Input  :"</span> ++ show previousRes
+</div></code></pre>
+</li>
+<li>
+<p><strong>Application des réactions</strong> :</p>
+<ul>
+<li><code>verifSysteme</code> est appelée pour appliquer les réactions sur les séquences précédentes.</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-title">let</span> currentResTemp = verifSysteme previousRes reactions
+</div></code></pre>
+</li>
+<li>
+<p><strong>Affichage des séquences de sortie temporaires</strong> :</p>
+<pre class="hljs"><code><div><span class="hljs-title">putStrLn</span> $ <span class="hljs-string">"   &gt; Output :"</span> ++ show currentResTemp
+</div></code></pre>
+</li>
+<li>
+<p><strong>Génération des nouvelles séquences</strong> :</p>
+<ul>
+<li>Les nouvelles séquences sont générées en combinant chaque générateur avec chaque séquence résultante, c'est ici qu'on applique la récursion en quelque sorte puisque cela permet de créer l'ensemble des combinaisons possibles des entitées générantes.</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-title">let</span> currentRes = [g ++ res | res &lt;- currentResTemp, g &lt;- generateur]
+</div></code></pre>
+</li>
+<li>
+<p><strong>Affichage des nouvelles feuilles</strong> :</p>
+<pre class="hljs"><code><div><span class="hljs-title">putStrLn</span> $ <span class="hljs-string">"   &gt; Leafs  :"</span> ++ show currentRes
+</div></code></pre>
+</li>
+<li>
+<p><strong>Mise à jour de l'accumulateur</strong> :</p>
+<ul>
+<li>Les nouvelles séquences sont ajoutées à l'accumulateur après suppression des doublons (si une entité est présente on à déjà un chemin vers celle-ci donc pas besoin d'un deuxième chemin)</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-title">let</span> newAcc = <span class="hljs-keyword">if</span> supDoublons acc currentRes == [] <span class="hljs-keyword">then</span> acc <span class="hljs-keyword">else</span> acc ++ [supDoublons acc currentRes]
+</div></code></pre>
+</li>
+<li>
+<p><strong>Affichage de l'accumulateur mis à jour</strong> :</p>
+<pre class="hljs"><code><div><span class="hljs-title">putStrLn</span> $ <span class="hljs-string">"   &gt; Res    :"</span> ++ show newAcc
+<span class="hljs-title">putStrLn</span> <span class="hljs-string">"\n"</span>
+</div></code></pre>
+</li>
+<li>
+<p><strong>Vérification de la stabilisation</strong> :</p>
+<ul>
+<li>Si l'accumulateur n'a pas changé, le système est considéré comme stabilisé et la profondeur actuelle est affichée sinon l'on passe par une récursion.</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-title">if</span> acc == newAcc
+  <span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span>
+    putStrLn (<span class="hljs-string">"####### Stabilisation du système à la profondeur : "</span> ++ show currentDepth)
+    return acc
+  <span class="hljs-keyword">else</span> recKAux generateur reactions (currentDepth + <span class="hljs-number">1</span>) currentRes newAcc
+</div></code></pre>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ol>
+<p>Supposons que vous ayez une liste de générateurs et de réactions. La fonction [<code>recK</code>] appliquera ces réactions de manière récursive sur les séquences générées jusqu'à ce que le système se stabilise, c'est-à-dire que l'accumulateur ne change plus. Le résultat de cette fonction peut donc être infini si le système ne se stabilise pas mais les systèmes de réactions étant fini, l'accumulation de nouvelles entités sera fini engendrant une stabilisation du système (on ne crée plus rien de nouveau).</p>
+<h3 id="3-v%C3%A9rifiez-si-une-entit%C3%A9-donn%C3%A9e-est-produite-dans-un-rs-lors-de-linteraction-avec-un-processus-k">3. Vérifiez si une entité donnée est produite dans un RS lors de l'interaction avec un processus K</h3>
+<p>Pour vérifier si une entité donnée est produite dans un RS lors de l'interaction avec un processus K, utilisez la fonction <code>recK</code> puis <code>presenceEntite</code> qui renverra un Booléen. Par exemple,</p>
+<pre class="hljs"><code><div><span class="hljs-title">result</span> &lt;- recK [[<span class="hljs-string">"a"</span>, <span class="hljs-string">"b"</span>, <span class="hljs-string">"c"</span>], [<span class="hljs-string">"c"</span>, <span class="hljs-string">"a"</span>, <span class="hljs-string">"d"</span>]] alphaSystem
+<span class="hljs-title">presenceEntite</span> <span class="hljs-string">"a"</span> result
+</div></code></pre>
+<p>Donne :</p>
+<pre class="hljs"><code><div><span class="hljs-title">ghci</span>&gt; result &lt;- recK [[<span class="hljs-string">"a"</span>, <span class="hljs-string">"b"</span>, <span class="hljs-string">"c"</span>], [<span class="hljs-string">"c"</span>, <span class="hljs-string">"a"</span>, <span class="hljs-string">"d"</span>]] alphaSystem
+<span class="hljs-type">Profondeur</span> <span class="hljs-number">1</span>: 
+
+   &gt; <span class="hljs-type">Input</span>  :[[]]
+   &gt; <span class="hljs-type">Output</span> :[[]]
+   &gt; <span class="hljs-type">Leafs</span>  :[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>]]
+   &gt; <span class="hljs-type">Res</span>    :[[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>]]]
+
+
+<span class="hljs-type">Profondeur</span> <span class="hljs-number">2</span>: 
+
+   &gt; <span class="hljs-type">Input</span>  :[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>]]
+   &gt; <span class="hljs-type">Output</span> :[[],[<span class="hljs-string">"c"</span>]]
+   &gt; <span class="hljs-type">Leafs</span>  :[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>],[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>,<span class="hljs-string">"c"</span>]]
+   &gt; <span class="hljs-type">Res</span>    :[[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>]],[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>,<span class="hljs-string">"c"</span>]]]
+
+
+<span class="hljs-type">Profondeur</span> <span class="hljs-number">3</span>: 
+
+   &gt; <span class="hljs-type">Input</span>  :[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>],[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>,<span class="hljs-string">"c"</span>]]
+   &gt; <span class="hljs-type">Output</span> :[[],[<span class="hljs-string">"c"</span>],[],[<span class="hljs-string">"c"</span>]]
+   &gt; <span class="hljs-type">Leafs</span>  :[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>],[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>],[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>,<span class="hljs-string">"c"</span>]]
+   &gt; <span class="hljs-type">Res</span>    :[[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>]],[[<span class="hljs-string">"a"</span>,<span class="hljs-string">"b"</span>,<span class="hljs-string">"c"</span>,<span class="hljs-string">"c"</span>],[<span class="hljs-string">"c"</span>,<span class="hljs-string">"a"</span>,<span class="hljs-string">"d"</span>,<span class="hljs-string">"c"</span>]]]
+
+
+<span class="hljs-meta">####### Stabilisation du système à la profondeur : 3</span>
+<span class="hljs-title">ghci</span>&gt; presenceEntite <span class="hljs-string">"a"</span> result
+<span class="hljs-type">True</span>
+</div></code></pre>
+<h3 id="4-v%C3%A9rifiez-si-le-rs-se-stabilise">4. Vérifiez si le RS se stabilise</h3>
+<p>Pour vérifier si le système de réaction se stabilise, c'est-à-dire s'il existe un cycle où un état est visité une infinité de fois, on peut utilise la fonction <code>recK</code>. Et l'on peut voir à quelle étape notre système se stabilise. Voir 3. pour observer une stabilisation. La profondeur 3 n'apporte aucune entitée nouvelle et l'on à donc une stabilisation du système.</p>
+<h3 id="5-r%C3%A9sultats-avec-dautres-donn%C3%A9es">5. Résultats avec d'autres données</h3>
+<p>Pour utiliser les données fournies par notre professeur <strong>Carlos Olarte</strong>, il suffit d'utiliser la fonction principale :</p>
+<pre class="hljs"><code><div><span class="hljs-title">hsreact</span>
+</div></code></pre>
+<p>Vous aurez alors la possibilité de choisir parmi des ensembles de données plus volumineux.</p>
+<p>Nous avons effectués nos tests par rapport à la page 5 de l'article <a href="./paper.pdf">ccReact: a Rewriting Framework for the Formal Analysis of
+Reaction Systems</a> et aux fichiers <code>cases-studies</code> du système <a href="https://github.com/carlosolarte/ccReact">ccReact</a> disponible sur GitHub.</p>
+<p>stimulis <strong>egf</strong>, <strong>hrg</strong> et drogues <strong>e</strong>, <strong>p</strong>, <strong>t</strong>. Nous avons testé toutes les combinaisons de stimulis et de drogues (<strong>empty</strong> également) et avons obtenu les mêmes résultats. Dans <strong>generateur.txt</strong>, on entre la combinaison par exemple <strong>&quot;egf,hrg,e,t&quot;</strong> et on teste sur les réactions <strong>short-term</strong>.
+Pour les <strong>long-term</strong>, on doit utiliser le stimulis <strong>&quot;s&quot;</strong> et ajouter les drogues de la même façon.</p>
+
+</body>
+</html>
